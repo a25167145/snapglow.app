@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapGlow | All-in-One Social Card Maker</title>
+    <meta name="description" content="Turn your code snippets, notes, and quotes into beautiful aesthetic images for Instagram, Twitter, and LinkedIn. Free, privacy-focused, and no login required.">
+    
+    <!-- 引入字體庫 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Noto+Serif+TC:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- 核心函式庫 -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    
+    <style>
+        :root { --primary: #4f46e5; --bg-panel: #ffffff; --bg-main: #f3f4f6; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); margin: 0; padding: 20px; color: #1f2937; }
+        
+        .main-container { max-width: 1200px; margin: 0 auto; display: flex; gap: 30px; align-items: flex-start; }
+        
+        /* 左側控制面板 */
+        .controls-panel { 
+            flex: 1; background: var(--bg-panel); padding: 25px; border-radius: 16px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); position: sticky; top: 20px; position: relative; 
+        }
+
+        /* 懸浮語言選單 */
+        #langSwitcher {
+            position: absolute; top: 20px; right: 20px; width: auto; padding: 6px 12px; font-size: 0.8rem;
+            border: 1px solid #e5e7eb; background: #f9fafb; border-radius: 20px; cursor: pointer; z-index: 10;
+        }
+
+        h1 { margin-top: 0; margin-right: 60px; font-size: 1.5rem; color: #111827; letter-spacing: -0.025em; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.85rem; color: #4b5563;}
+        
+        textarea, input[type="text"], select:not(#langSwitcher) { 
+            width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; 
+            font-family: 'Inter', sans-serif; transition: 0.2s; font-size: 0.95rem;
+        }
+        textarea { height: 120px; resize: vertical; }
+
+        .mode-toggle { display: flex; gap: 5px; background: #f3f4f6; padding: 5px; border-radius: 10px; margin-bottom: 20px; }
+        .mode-btn { flex: 1; border: none; background: transparent; padding: 10px; border-radius: 8px; font-weight: 600; color: #6b7280; cursor: pointer; transition: 0.2s; }
+        .mode-btn.active { background: white; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+        .control-group { margin-bottom: 18px; }
+        .hidden { display: none; }
+        .color-group { display: flex; gap: 10px; }
+        input[type="color"] { flex: 1; height: 40px; border: none; padding: 0; cursor: pointer; border-radius: 6px; overflow: hidden; }
+        
+        .style-selector { display: flex; gap: 10px; margin-top: 5px; }
+        .style-option { 
+            flex: 1; height: 40px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; 
+            position: relative; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center; background: #f9fafb;
+            font-size: 0.8rem; font-weight: 600; color: #666;
+        }
+        .style-option:hover { transform: translateY(-2px); }
+        .style-option.selected { border-color: var(--primary); color: var(--primary); background: #eef2ff; }
+
+        /* Quote 樣式預覽小圖塊 */
+        .preview-box-classic { width: 20px; height: 20px; background: #fafaf9; border: 1px solid #ddd; }
+        .preview-box-dark { width: 20px; height: 20px; background: #1f2937; }
+        .preview-box-glass { width: 20px; height: 20px; background: linear-gradient(135deg, #eee, #ccc); }
+        .preview-box-outline { width: 20px; height: 20px; border: 2px solid #999; }
+
+        .btn-download { 
+            width: 100%; padding: 15px; background: linear-gradient(to right, #2563eb, #4f46e5); color: white; 
+            border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; 
+            margin-top: 10px; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); 
+        }
+
+        .preview-section { 
+            flex: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            min-height: 600px; background: #e5e7eb; border-radius: 16px; padding: 40px; 
+            border: 2px dashed #d1d5db; position: relative; 
+        }
+
+        #captureArea {
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            padding: 60px; display: flex; align-items: center; justify-content: center;
+            box-sizing: border-box; width: auto; min-width: 500px; max-width: 800px; border-radius: 4px;
+        }
+
+        .window-box {
+            border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            width: 100%; overflow: hidden; transition: all 0.3s ease;
+        }
+
+        .window-header { padding: 12px 16px; display: flex; align-items: center; background: transparent; position: relative;}
+        .header-title { flex: 1; text-align: center; color: #9ca3af; font-size: 0.8rem; font-weight: 500; z-index: 1;}
+        .controls-container { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; padding: 0 16px; z-index: 2; }
+        
+        /* Styles logic */
+        .win-mac .controls-container { left: 0; }
+        .win-mac .window-box { border-radius: 12px; }
+        .mac-dots { display: flex; gap: 8px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background: #ff5f56; } .yellow { background: #ffbd2e; } .green { background: #27c93f; }
+        .win-buttons { display: none; }
+
+        .win-windows .controls-container { right: 0; }
+        .win-windows .window-box { border-radius: 6px; }
+        .win-windows .mac-dots { display: none; }
+        .win-windows .win-buttons { display: flex; gap: 15px; }
+        .win-btn { width: 10px; height: 10px; position: relative; opacity: 0.6; }
+        .wb-min::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; background: currentColor; }
+        .wb-max { border: 1px solid currentColor; box-sizing: border-box; }
+        .wb-close::before, .wb-close::after { content: ''; position: absolute; top: 50%; left: 50%; width: 100%; height: 1px; background: currentColor; }
+        .wb-close::before { transform: translate(-50%, -50%) rotate(45deg); }
+        .wb-close::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+        .win-none .controls-container { display: none; }
+        .win-none .window-box { border-radius: 4px; }
+
+        /* Modes */
+        .mode-code .window-box { background: #282c34; color: #fff; }
+        .mode-code .window-header { background: #21252b; }
+        .mode-code pre { margin: 0; background: transparent !important; padding: 0 !important; text-shadow: none !important; }
+        .mode-code code { font-family: 'Fira Code', monospace !important; font-size: 15px; }
+        .mode-note .window-box { background: #ffffff; color: #374151; }
+        .mode-note .header-title { color: #d1d5db; }
+        .mode-note .win-btn { color: #9ca3af; } 
+        .mode-note .content-area { font-family: 'Inter', sans-serif; font-size: 18px; white-space: pre-wrap; }
+        .mode-quote .window-header { display: none; }
+        .mode-quote .content-area { font-family: 'Merriweather', 'Noto Serif TC', serif; font-size: 24px; font-style: italic; padding: 50px 40px; text-align: center; }
+        .author-text { margin-top: 20px; font-size: 1rem; font-family: 'Inter', sans-serif; font-style: normal; font-weight: 600; opacity: 0.8; }
+
+        /* Quote Styles */
+        .quote-style-classic .window-box { background: #fafaf9; color: #1c1917; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .quote-style-dark .window-box { background: #111827; color: #f9fafb; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .quote-style-dark .author-text { color: #d1d5db; }
+        .quote-style-glass .window-box { background: rgba(255, 255, 255, 0.25); border: 1px solid rgba(255, 255, 255, 0.4); color: #ffffff; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .quote-style-outline .window-box { background: transparent; border: 4px solid rgba(255,255,255,0.9); color: #ffffff; box-shadow: none; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        .content-area { padding: 30px; line-height: 1.6; min-height: 80px; }
+        
+        /* Plan A: Buy Me a Coffee Support Box Styles */
+        .support-box {
+            background: linear-gradient(to right, #fef3c7, #fff7ed);
+            border: 1px solid #fed7aa;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+            color: #9a3412;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .support-title { margin: 0 0 5px 0; font-size: 1.1rem; font-weight: 700; }
+        .support-desc { margin: 0 0 15px 0; font-size: 0.85rem; opacity: 0.9; }
+        .support-btn {
+            display: inline-block;
+            background: #ea580c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(234, 88, 12, 0.3);
+        }
+        .support-btn:hover { transform: translateY(-2px); background: #c2410c; box-shadow: 0 4px 6px rgba(234, 88, 12, 0.4); }
+
+        /* SEO Section Styles */
+        .seo-section { max-width: 800px; margin: 60px auto; padding: 0 20px; color: #4b5563; }
+        .seo-section h2 { text-align: center; color: #111827; font-size: 1.8rem; margin-bottom: 40px; }
+        .faq-item { margin-bottom: 20px; border-bottom: 1px solid #e5e7eb; padding-bottom: 20px; }
+        .faq-item h3 { font-size: 1.2rem; color: #1f2937; margin-bottom: 10px; }
+        .faq-item p { line-height: 1.6; }
+        
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .controls-panel { position: static; }
+            .preview-section { width: 100%; box-sizing: border-box; padding: 20px; }
+            #captureArea { min-width: 100%; padding: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="controls-panel">
+            <select id="langSwitcher" onchange="changeLanguage(this.value)">
+                <option value="en">🌐 English</option>
+                <option value="zh">🌐 繁體中文</option>
+                <option value="ja">🌐 日本語</option>
+            </select>
+
+            <h1 data-i18n="title_main">✨ SnapGlow Maker</h1>
+
+            <div class="mode-toggle">
+                <button class="mode-btn active" onclick="setMode('code')" data-i18n="btn_code">💻 Code</button>
+                <button class="mode-btn" onclick="setMode('note')" data-i18n="btn_note">📝 Note</button>
+                <button class="mode-btn" onclick="setMode('quote')" data-i18n="btn_quote">❝ Quote</button>
+            </div>
+            
+            <div class="control-group">
+                <label id="contentLabel" data-i18n="label_content">Content</label>
+                <textarea id="textInput" oninput="updateContent()">console.log("Hello, World!");</textarea>
+            </div>
+
+            <!-- Window Styles -->
+            <div id="windowStyleOptions" class="control-group">
+                <label data-i18n="label_win_style">Window Style</label>
+                <div class="style-selector">
+                    <div class="style-option selected" onclick="setWindowStyle('mac', this)">macOS</div>
+                    <div class="style-option" onclick="setWindowStyle('windows', this)">Windows</div>
+                    <div class="style-option" onclick="setWindowStyle('none', this)">Minimal</div>
+                </div>
+            </div>
+
+            <!-- Code Options -->
+            <div id="codeOptions" class="control-group">
+                <label data-i18n="label_lang">Language</label>
+                <select id="langSelect" onchange="updateContent()">
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="css">CSS</option>
+                    <option value="markup">HTML</option>
+                </select>
+            </div>
+
+            <!-- Quote Options -->
+            <div id="quoteOptions" class="control-group hidden">
+                <label data-i18n="label_style">Card Style</label>
+                <div class="style-selector">
+                    <div class="style-option opt-classic selected" onclick="setQuoteStyle('classic')" title="Classic"><div class="preview-box-classic"></div></div>
+                    <div class="style-option opt-dark" onclick="setQuoteStyle('dark')" title="Midnight"><div class="preview-box-dark"></div></div>
+                    <div class="style-option opt-glass" onclick="setQuoteStyle('glass')" title="Glass"><div class="preview-box-glass"></div></div>
+                    <div class="style-option opt-outline" onclick="setQuoteStyle('outline')" title="Outline"><div class="preview-box-outline"></div></div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <label data-i18n="label_author">Author</label>
+                    <input type="text" id="authorInput" placeholder="e.g. — Steve Jobs" oninput="updateContent()">
+                </div>
+            </div>
+
+            <div class="control-group" id="titleGroup">
+                <label data-i18n="label_title">Window Title</label>
+                <input type="text" id="titleInput" placeholder="Untitled" oninput="updateTitle()">
+            </div>
+
+            <div class="control-group">
+                <label data-i18n="label_theme">Background Theme</label>
+                <div class="color-group">
+                    <input type="color" id="color1" value="#667eea" oninput="updateStyle()">
+                    <input type="color" id="color2" value="#764ba2" oninput="updateStyle()">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label data-i18n="label_padding">Padding Size</label>
+                <input type="range" id="paddingInput" min="20" max="150" value="60" oninput="updateStyle()">
+            </div>
+
+            <button class="btn-download" onclick="downloadImage()" data-i18n="btn_download">📸 Download Image</button>
+
+            <!-- Support Box (Sidebar) -->
+            <div class="support-box">
+                <div class="support-title" data-i18n="support_title">☕ Enjoying SnapGlow?</div>
+                <p class="support-desc" data-i18n="support_desc">Support us to keep this tool free!</p>
+                <!-- IMPORTANT: Replace this link with your actual Buy Me a Coffee link -->
+                <a href="https://www.buymeacoffee.com/" target="_blank" class="support-btn" data-i18n="support_btn">Buy me a Coffee</a>
+            </div>
+        </div>
+
+        <div class="preview-section">
+            <div id="captureArea" class="mode-code win-mac">
+                <div class="window-box">
+                    <div class="window-header">
+                        <div class="controls-container">
+                            <div class="mac-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+                            <div class="win-buttons"><div class="win-btn wb-min"></div><div class="win-btn wb-max"></div><div class="win-btn wb-close"></div></div>
+                        </div>
+                        <div class="header-title" id="previewTitle">Untitled</div>
+                    </div>
+                    <div class="window-content content-area">
+                        <code id="displayCode"></code>
+                        <div id="displayText" style="display:none;"></div>
+                        <div id="displayAuthor" class="author-text" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Support Box (Bottom/Mobile) -->
+            <div class="support-box" style="width: 100%; margin-top: 30px; box-sizing: border-box;">
+                <div class="support-title" data-i18n="support_title">☕ Enjoying SnapGlow?</div>
+                <p class="support-desc" data-i18n="support_desc">Support us to keep this tool free!</p>
+                <!-- IMPORTANT: Replace this link with your actual Buy Me a Coffee link -->
+                <a href="https://www.buymeacoffee.com/" target="_blank" class="support-btn" data-i18n="support_btn">Buy me a Coffee</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEO & FAQ Section -->
+    <section class="seo-section">
+        <h2 data-i18n="seo_h2">Why use SnapGlow?</h2>
+
+        <div class="faq-item">
+            <h3 data-i18n="seo_q1_title">🚀 Aesthetic Code Snippets</h3>
+            <p data-i18n="seo_q1_desc">SnapGlow is the best tool to convert your source code to beautiful images with syntax highlighting and window frames.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3 data-i18n="seo_q2_title">✨ Share Notes & Quotes</h3>
+            <p data-i18n="seo_q2_desc">Turn ChatGPT conversations, Notion notes, and daily quotes into viral-worthy social media cards.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3 data-i18n="seo_q3_title">🔒 Privacy First</h3>
+            <p data-i18n="seo_q3_desc">SnapGlow works entirely in your browser. Your data never leaves your device. No login required.</p>
+        </div>
+        
+        <div style="text-align:center; font-size: 0.8rem; margin-top: 40px;">
+            <a href="privacy.html" style="color:#666; text-decoration:none; margin:0 10px;">Privacy Policy</a> | 
+            <a href="terms.html" style="color:#666; text-decoration:none; margin:0 10px;">Terms</a> | 
+            <a href="contact.html" style="color:#666; text-decoration:none; margin:0 10px;">Contact</a>
+        </div>
+    </section>
+
+    <script>
+        // === Translations ===
+        const translations = {
+            "en": {
+                // UI
+                "title_main": "✨ SnapGlow Maker",
+                "btn_code": "💻 Code",
+                "btn_note": "📝 Note",
+                "btn_quote": "❝ Quote",
+                "label_content_code": "Code Snippet",
+                "label_content_note": "Note Content",
+                "label_content_quote": "Quote Text",
+                "label_lang": "Language",
+                "label_author": "Author / Source",
+                "label_title": "Window Title",
+                "label_style": "Card Style",
+                "label_win_style": "Window Style",
+                "label_theme": "Background Theme",
+                "label_padding": "Padding Size",
+                "btn_download": "📸 Download Image",
+                "ph_title": "Untitled",
+                "ph_author": "e.g. — Steve Jobs",
+                // Support Box
+                "support_title": "☕ Enjoying SnapGlow?",
+                "support_desc": "Support us to keep this tool free!",
+                "support_btn": "Buy me a Coffee",
+                // SEO Content
+                "seo_h2": "Why use SnapGlow for Social Media?",
+                "seo_q1_title": "🚀 Aesthetic Code Snippets",
+                "seo_q1_desc": "SnapGlow helps you convert source code to beautiful images with syntax highlighting. Perfect for sharing Python, JS, or CSS on Instagram and Twitter.",
+                "seo_q2_title": "✨ Share AI Prompts & Quotes",
+                "seo_q2_desc": "Turn ChatGPT responses, Notion notes, and inspirational quotes into viral-worthy social media cards with custom backgrounds.",
+                "seo_q3_title": "🔒 Privacy First & Free",
+                "seo_q3_desc": "Everything happens in your browser. Your text and code never leave your device. No login or credit card required."
+            },
+            "zh": {
+                // UI
+                "title_main": "✨ 美圖產生器",
+                "btn_code": "💻 程式碼",
+                "btn_note": "📝 筆記/AI",
+                "btn_quote": "❝ 語錄",
+                "label_content_code": "程式碼片段",
+                "label_content_note": "筆記內容",
+                "label_content_quote": "語錄內容",
+                "label_lang": "程式語言",
+                "label_author": "作者 / 出處",
+                "label_title": "視窗標題",
+                "label_style": "卡片風格",
+                "label_win_style": "視窗邊框",
+                "label_theme": "背景配色",
+                "label_padding": "邊距大小",
+                "btn_download": "📸 下載圖片",
+                "ph_title": "未命名標題",
+                "ph_author": "例如：— 賈伯斯",
+                // Support Box
+                "support_title": "☕ 喜歡 SnapGlow 嗎？",
+                "support_desc": "您的支持是我們開發的動力！",
+                "support_btn": "請我喝杯咖啡",
+                // SEO Content
+                "seo_h2": "為什麼選擇 SnapGlow？",
+                "seo_q1_title": "🚀 製作最美的程式碼截圖",
+                "seo_q1_desc": "SnapGlow 是將程式碼轉換為圖片的最佳工具。支援語法高亮與 macOS 風格視窗，讓你的 Python 或 JavaScript 代碼在 Instagram 上脫穎而出。",
+                "seo_q2_title": "✨ 分享 AI 對話與語錄",
+                "seo_q2_desc": "不再只有無聊的截圖！將 ChatGPT 的回答、Notion 筆記或勵志語錄，一鍵轉換成質感滿分的社群卡片。",
+                "seo_q3_title": "🔒 隱私優先，完全免費",
+                "seo_q3_desc": "所有運算都在您的瀏覽器中完成。您的程式碼與文字永遠不會上傳到伺服器，安全且無需登入。",
+            },
+            "ja": {
+                // UI
+                "title_main": "✨ スナップ・メーカー",
+                "btn_code": "💻 コード",
+                "btn_note": "📝 メモ/AI",
+                "btn_quote": "❝ 引用",
+                "label_content_code": "コードスニペット",
+                "label_content_note": "メモ内容",
+                "label_content_quote": "引用テキスト",
+                "label_lang": "言語",
+                "label_author": "著者 / ソース",
+                "label_title": "ウィンドウ名",
+                "label_style": "カードスタイル",
+                "label_win_style": "ウィンドウスタイル",
+                "label_theme": "背景テーマ",
+                "label_padding": "余白サイズ",
+                "btn_download": "📸 画像を保存",
+                "ph_title": "無題",
+                "ph_author": "例：— スティーブ・ジョブズ",
+                // Support Box
+                "support_title": "☕ 気に入りましたか？",
+                "support_desc": "開発をサポートしてください！",
+                "support_btn": "コーヒーを奢る",
+                // SEO Content
+                "seo_h2": "なぜ SnapGlow を選ぶのか？",
+                "seo_q1_title": "🚀 美しいコード画像を生成",
+                "seo_q1_desc": "ソースコードをシンタックスハイライト付きの美しい画像に変換します。Instagram や Twitter で技術情報を共有するのに最適です。",
+                "seo_q2_title": "✨ AIチャットや名言をシェア",
+                "seo_q2_desc": "ChatGPTの回答やNotionのメモ、心に響く名言を、洗練されたソーシャルメディアカードに瞬時に変換します。",
+                "seo_q3_title": "🔒 プライバシー重視＆無料",
+                "seo_q3_desc": "すべてブラウザ内で完結します。あなたのデータがサーバーに送信されることはありません。ログイン不要で、今すぐ無料で使えます。"
+            }
+        };
+
+        let currentLang = 'en';
+        let currentMode = 'code';
+        let currentQuoteStyle = 'classic'; 
+        let currentWinStyle = 'mac';
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerText = t[key];
+            });
+            updateContentLabel();
+            document.getElementById('titleInput').placeholder = t['ph_title'];
+            document.getElementById('authorInput').placeholder = t['ph_author'];
+        }
+
+        function updateContentLabel() {
+            const label = document.getElementById('contentLabel');
+            const t = translations[currentLang];
+            if(currentMode === 'code') label.innerText = t['label_content_code'];
+            else if(currentMode === 'note') label.innerText = t['label_content_note'];
+            else if(currentMode === 'quote') label.innerText = t['label_content_quote'];
+        }
+
+        // Logic
+        const textInput = document.getElementById('textInput');
+        const authorInput = document.getElementById('authorInput');
+        const captureArea = document.getElementById('captureArea');
+        const displayCode = document.getElementById('displayCode');
+        const displayText = document.getElementById('displayText');
+        const displayAuthor = document.getElementById('displayAuthor');
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            captureArea.classList.remove('mode-code', 'mode-note', 'mode-quote');
+            captureArea.classList.add(`mode-${mode}`);
+            
+            const winStyleOpts = document.getElementById('windowStyleOptions');
+            const quoteOpts = document.getElementById('quoteOptions');
+            const codeOpts = document.getElementById('codeOptions');
+            const titleGrp = document.getElementById('titleGroup');
+
+            if (mode === 'quote') {
+                winStyleOpts.classList.add('hidden');
+                quoteOpts.classList.remove('hidden');
+                codeOpts.classList.add('hidden');
+                titleGrp.classList.add('hidden');
+                captureArea.classList.add(`quote-style-${currentQuoteStyle}`);
+                textInput.value = `Stay hungry, stay foolish.`;
+                authorInput.value = `— Steve Jobs`;
+            } else {
+                winStyleOpts.classList.remove('hidden');
+                quoteOpts.classList.add('hidden');
+                titleGrp.classList.remove('hidden');
+                captureArea.classList.remove(`quote-style-${currentQuoteStyle}`);
+                if (mode === 'code') {
+                    codeOpts.classList.remove('hidden');
+                    textInput.value = `console.log("Hello, World!");`;
+                } else {
+                    codeOpts.classList.add('hidden');
+                    textInput.value = `Here are 3 tips:\n1. Keep it simple.\n2. Practice daily.\n3. Drink coffee. ☕`;
+                }
+            }
+            updateContentLabel();
+            updateContent();
+        }
+
+        function setWindowStyle(style, el) {
+            currentWinStyle = style;
+            const parent = el.parentElement;
+            parent.querySelectorAll('.style-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            captureArea.classList.remove('win-mac', 'win-windows', 'win-none');
+            captureArea.classList.add(`win-${style}`);
+        }
+
+        function setQuoteStyle(style) {
+            currentQuoteStyle = style;
+            document.querySelectorAll('#quoteOptions .style-option').forEach(opt => opt.classList.remove('selected'));
+            document.querySelector(`.opt-${style}`).classList.add('selected');
+            if (currentMode === 'quote') {
+                captureArea.classList.remove('quote-style-classic', 'quote-style-dark', 'quote-style-glass', 'quote-style-outline');
+                captureArea.classList.add(`quote-style-${style}`);
+            }
+        }
+
+        function updateContent() {
+            const raw = textInput.value;
+            if (currentMode === 'code') {
+                displayCode.style.display = 'block';
+                displayText.style.display = 'none';
+                displayAuthor.style.display = 'none';
+                const lang = document.getElementById('langSelect').value;
+                displayCode.className = `language-${lang}`;
+                displayCode.textContent = raw;
+                Prism.highlightElement(displayCode);
+            } else {
+                displayCode.style.display = 'none';
+                displayText.style.display = 'block';
+                displayText.innerText = raw;
+                if (currentMode === 'quote') {
+                    displayAuthor.style.display = 'block';
+                    displayAuthor.innerText = authorInput.value;
+                } else {
+                    displayAuthor.style.display = 'none';
+                }
+            }
+        }
+
+        function updateTitle() { document.getElementById('previewTitle').innerText = document.getElementById('titleInput').value; }
+
+        function updateStyle() {
+            const c1 = document.getElementById('color1').value;
+            const c2 = document.getElementById('color2').value;
+            const pad = document.getElementById('paddingInput').value;
+            captureArea.style.background = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
+            captureArea.style.padding = `${pad}px`;
+        }
+
+        function downloadImage() {
+            const btn = document.querySelector('.btn-download');
+            const originalText = btn.innerText;
+            btn.innerText = "Processing...";
+            html2canvas(captureArea, { scale: 2, backgroundColor: null, useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `snapglow-${currentMode}-${Date.now()}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+                btn.innerText = originalText;
+            });
+        }
+
+        // Init
+        const userLang = navigator.language || navigator.userLanguage; 
+        if (userLang.includes('zh')) { document.getElementById('langSwitcher').value = 'zh'; changeLanguage('zh'); }
+        else if (userLang.includes('ja')) { document.getElementById('langSwitcher').value = 'ja'; changeLanguage('ja'); }
+        else { changeLanguage('en'); }
+        updateContent();
+    </script>
+</body>
+</html>
