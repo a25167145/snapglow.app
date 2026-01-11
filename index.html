@@ -5,16 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SnapGlow | All-in-One Social Card Maker</title>
     <meta name="description" content="Turn your code snippets, notes, and quotes into beautiful aesthetic images for Instagram, Twitter, and LinkedIn. Free, privacy-focused, and no login required.">
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZFC0SL7NFQ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-ZFC0SL7NFQ');
-</script>
     
+    <!-- Google tag (gtag.js) - 保留您的 GA4 代碼 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZFC0SL7NFQ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-ZFC0SL7NFQ');
+    </script>
+    
+    <!-- Google AdSense - 保留您的 AdSense 驗證代碼 -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2859402783329016"
      crossorigin="anonymous"></script>
     
@@ -186,6 +187,9 @@
         .faq-item h3 { font-size: 1.2rem; color: #1f2937; margin-bottom: 10px; }
         .faq-item p { line-height: 1.6; }
         
+        /* 數值顯示 */
+        .range-value { float: right; color: var(--primary); font-family: monospace; font-size: 0.9em; }
+
         @media (max-width: 900px) {
             .main-container { flex-direction: column; }
             .controls-panel { position: static; }
@@ -258,12 +262,27 @@
                 <input type="text" id="titleInput" placeholder="Untitled" oninput="updateTitle()">
             </div>
 
+            <!-- Background Theme Controls -->
             <div class="control-group">
                 <label data-i18n="label_theme">Background Theme</label>
                 <div class="color-group">
                     <input type="color" id="color1" value="#667eea" oninput="updateStyle()">
                     <input type="color" id="color2" value="#764ba2" oninput="updateStyle()">
                 </div>
+            </div>
+
+            <!-- v3.5 New Gradient Controls -->
+            <div class="control-group">
+                <label data-i18n="label_grad_type">Gradient Style</label>
+                <div class="style-selector">
+                    <div class="style-option grad-opt selected" onclick="setGradType('linear', this)">Linear ↗</div>
+                    <div class="style-option grad-opt" onclick="setGradType('radial', this)">Radial ⭕</div>
+                </div>
+            </div>
+            
+            <div class="control-group" id="angleControl">
+                <label><span data-i18n="label_grad_angle">Angle</span>: <span id="val_angle" class="range-value">135°</span></label>
+                <input type="range" id="angleInput" min="0" max="360" value="135" oninput="updateStyle()">
             </div>
 
             <div class="control-group">
@@ -277,7 +296,6 @@
             <div class="support-box">
                 <div class="support-title" data-i18n="support_title">☕ Enjoying SnapGlow?</div>
                 <p class="support-desc" data-i18n="support_desc">Support us to keep this tool free!</p>
-                <!-- IMPORTANT: Replace this link with your actual Buy Me a Coffee link -->
                 <a href="https://buymeacoffee.com/snapglow" target="_blank" class="support-btn" data-i18n="support_btn">Buy me a Coffee</a>
             </div>
         </div>
@@ -300,11 +318,10 @@
                 </div>
             </div>
             
-            <!-- Support Box (Bottom/Mobile) -->
+            <!-- Support Box (Bottom) -->
             <div class="support-box" style="width: 100%; margin-top: 30px; box-sizing: border-box;">
                 <div class="support-title" data-i18n="support_title">☕ Enjoying SnapGlow?</div>
                 <p class="support-desc" data-i18n="support_desc">Support us to keep this tool free!</p>
-                <!-- IMPORTANT: Replace this link with your actual Buy Me a Coffee link -->
                 <a href="https://buymeacoffee.com/snapglow" target="_blank" class="support-btn" data-i18n="support_btn">Buy me a Coffee</a>
             </div>
         </div>
@@ -354,11 +371,12 @@
                 "label_style": "Card Style",
                 "label_win_style": "Window Style",
                 "label_theme": "Background Theme",
+                "label_grad_type": "Gradient Style",
+                "label_grad_angle": "Angle",
                 "label_padding": "Padding Size",
                 "btn_download": "📸 Download Image",
                 "ph_title": "Untitled",
                 "ph_author": "e.g. — Steve Jobs",
-                // Support Box
                 "support_title": "☕ Enjoying SnapGlow?",
                 "support_desc": "Support us to keep this tool free!",
                 "support_btn": "Buy me a Coffee",
@@ -386,11 +404,12 @@
                 "label_style": "卡片風格",
                 "label_win_style": "視窗邊框",
                 "label_theme": "背景配色",
+                "label_grad_type": "漸層樣式",
+                "label_grad_angle": "漸層角度",
                 "label_padding": "邊距大小",
                 "btn_download": "📸 下載圖片",
                 "ph_title": "未命名標題",
                 "ph_author": "例如：— 賈伯斯",
-                // Support Box
                 "support_title": "☕ 喜歡 SnapGlow 嗎？",
                 "support_desc": "您的支持是我們開發的動力！",
                 "support_btn": "請我喝杯咖啡",
@@ -418,11 +437,12 @@
                 "label_style": "カードスタイル",
                 "label_win_style": "ウィンドウスタイル",
                 "label_theme": "背景テーマ",
+                "label_grad_type": "グラデーション",
+                "label_grad_angle": "角度",
                 "label_padding": "余白サイズ",
                 "btn_download": "📸 画像を保存",
                 "ph_title": "無題",
                 "ph_author": "例：— スティーブ・ジョブズ",
-                // Support Box
                 "support_title": "☕ 気に入りましたか？",
                 "support_desc": "開発をサポートしてください！",
                 "support_btn": "コーヒーを奢る",
@@ -441,6 +461,7 @@
         let currentMode = 'code';
         let currentQuoteStyle = 'classic'; 
         let currentWinStyle = 'mac';
+        let currentGradType = 'linear'; // default linear
 
         function changeLanguage(lang) {
             currentLang = lang;
@@ -469,6 +490,7 @@
         const displayCode = document.getElementById('displayCode');
         const displayText = document.getElementById('displayText');
         const displayAuthor = document.getElementById('displayAuthor');
+        const angleControl = document.getElementById('angleControl');
 
         function setMode(mode) {
             currentMode = mode;
@@ -527,6 +549,21 @@
             }
         }
 
+        // New Gradient Logic
+        function setGradType(type, el) {
+            currentGradType = type;
+            document.querySelectorAll('.grad-opt').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+
+            // Show angle slider only for linear
+            if (type === 'linear') {
+                angleControl.classList.remove('hidden');
+            } else {
+                angleControl.classList.add('hidden');
+            }
+            updateStyle();
+        }
+
         function updateContent() {
             const raw = textInput.value;
             if (currentMode === 'code') {
@@ -556,7 +593,17 @@
             const c1 = document.getElementById('color1').value;
             const c2 = document.getElementById('color2').value;
             const pad = document.getElementById('paddingInput').value;
-            captureArea.style.background = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
+            const angle = document.getElementById('angleInput').value;
+            
+            // Apply Gradient Logic
+            if (currentGradType === 'linear') {
+                captureArea.style.background = `linear-gradient(${angle}deg, ${c1}, ${c2})`;
+                document.getElementById('val_angle').innerText = `${angle}°`;
+            } else {
+                // Radial Gradient
+                captureArea.style.background = `radial-gradient(circle, ${c1}, ${c2})`;
+            }
+            
             captureArea.style.padding = `${pad}px`;
         }
 
@@ -581,8 +628,4 @@
         updateContent();
     </script>
 </body>
-
 </html>
-
-
-
