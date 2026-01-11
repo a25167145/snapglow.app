@@ -6,6 +6,9 @@
     <title>SnapGlow | All-in-One Social Card Maker</title>
     <meta name="description" content="Turn your code snippets, notes, and quotes into beautiful aesthetic images for Instagram, Twitter, and LinkedIn. Free, privacy-focused, and no login required.">
     
+    <!-- ✅ Favicon (閃亮符號 ✨) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZFC0SL7NFQ"></script>
     <script>
@@ -34,7 +37,7 @@
         :root { --primary: #4f46e5; --bg-panel: #ffffff; --bg-main: #f3f4f6; }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); margin: 0; padding: 20px; color: #1f2937; }
         
-        /* === Nav Bar (新增：互連導覽列) === */
+        /* === Nav Bar (互連導覽列) === */
         .nav-bar {
             max-width: 1200px; margin: 0 auto 20px auto; padding: 12px 20px;
             background: #ffffff; border-radius: 12px;
@@ -233,7 +236,7 @@
 </head>
 <body>
 
-    <!-- 新增：互連導覽列 (Light Mode Style) -->
+    <!-- 互連導覽列 -->
     <nav class="nav-bar">
         <span style="font-weight: 500;">More Tools:</span>
         <a href="#" class="nav-link active">✨ SnapGlow</a>
@@ -400,6 +403,7 @@
         // === Translations ===
         const translations = {
             "en": {
+                // UI
                 "title_main": "✨ SnapGlow Maker",
                 "btn_code": "💻 Code",
                 "btn_note": "📝 Note",
@@ -422,6 +426,7 @@
                 "support_title": "☕ Enjoying SnapGlow?",
                 "support_desc": "Support us to keep this tool free!",
                 "support_btn": "Buy me a Coffee",
+                // SEO Content
                 "seo_h2": "Why use SnapGlow for Social Media?",
                 "seo_q1_title": "🚀 Aesthetic Code Snippets",
                 "seo_q1_desc": "SnapGlow helps you convert source code to beautiful images with syntax highlighting. Perfect for sharing Python, JS, or CSS on Instagram and Twitter.",
@@ -431,6 +436,7 @@
                 "seo_q3_desc": "Everything happens in your browser. Your text and code never leave your device. No login or credit card required."
             },
             "zh": {
+                // UI
                 "title_main": "✨ 美圖產生器",
                 "btn_code": "💻 程式碼",
                 "btn_note": "📝 筆記/AI",
@@ -453,6 +459,7 @@
                 "support_title": "☕ 喜歡 SnapGlow 嗎？",
                 "support_desc": "您的支持是我們開發的動力！",
                 "support_btn": "請我喝杯咖啡",
+                // SEO Content
                 "seo_h2": "為什麼選擇 SnapGlow？",
                 "seo_q1_title": "🚀 製作最美的程式碼截圖",
                 "seo_q1_desc": "SnapGlow 是將程式碼轉換為圖片的最佳工具。支援語法高亮與 macOS 風格視窗，讓你的 Python 或 JavaScript 代碼在 Instagram 上脫穎而出。",
@@ -462,6 +469,7 @@
                 "seo_q3_desc": "所有運算都在您的瀏覽器中完成。您的程式碼與文字永遠不會上傳到伺服器，安全且無需登入。",
             },
             "ja": {
+                // UI
                 "title_main": "✨ スナップ・メーカー",
                 "btn_code": "💻 コード",
                 "btn_note": "📝 メモ/AI",
@@ -484,6 +492,7 @@
                 "support_title": "☕ 気に入りましたか？",
                 "support_desc": "開発をサポートしてください！",
                 "support_btn": "コーヒーを奢る",
+                // SEO Content
                 "seo_h2": "なぜ SnapGlow を選ぶのか？",
                 "seo_q1_title": "🚀 美しいコード画像を生成",
                 "seo_q1_desc": "ソースコードをシンタックスハイライト付きの美しい画像に変換します。Instagram や Twitter で技術情報を共有するのに最適です。",
@@ -498,7 +507,7 @@
         let currentMode = 'code';
         let currentQuoteStyle = 'classic'; 
         let currentWinStyle = 'mac';
-        let currentGradType = 'linear';
+        let currentGradType = 'linear'; // default linear
 
         function changeLanguage(lang) {
             currentLang = lang;
@@ -520,6 +529,7 @@
             else if(currentMode === 'quote') label.innerText = t['label_content_quote'];
         }
 
+        // Logic
         const textInput = document.getElementById('textInput');
         const authorInput = document.getElementById('authorInput');
         const captureArea = document.getElementById('captureArea');
@@ -585,13 +595,16 @@
             }
         }
 
+        // New Gradient Logic
         function setGradType(type, el) {
             currentGradType = type;
             document.querySelectorAll('.grad-opt').forEach(opt => opt.classList.remove('selected'));
             el.classList.add('selected');
+
+            // Show angle slider only for linear
             if (type === 'linear') {
-                angleControl.classList.remove('hidden');
-                angleControl.style.display = 'flex';
+                angleControl.classList.remove('hidden'); // 改用 classList 移除 hidden
+                angleControl.style.display = 'flex'; // 強制顯示為 flex
             } else {
                 angleControl.classList.add('hidden');
                 angleControl.style.display = 'none';
@@ -630,10 +643,12 @@
             const pad = document.getElementById('paddingInput').value;
             const angle = document.getElementById('angleInput').value;
             
+            // Apply Gradient Logic
             if (currentGradType === 'linear') {
                 captureArea.style.background = `linear-gradient(${angle}deg, ${c1}, ${c2})`;
                 document.getElementById('val_angle').innerText = `${angle}°`;
             } else {
+                // Radial Gradient
                 captureArea.style.background = `radial-gradient(circle, ${c1}, ${c2})`;
             }
             
@@ -660,7 +675,7 @@
         else if (userLang.includes('ja')) { document.getElementById('langSwitcher').value = 'ja'; changeLanguage('ja'); }
         else { changeLanguage('en'); }
         updateContent();
-        updateStyle();
+        updateStyle(); // Force initial style update
     </script>
 </body>
 </html>
