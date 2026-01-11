@@ -1,744 +1,666 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel Art Studio | Global Edition</title>
-    <meta name="description" content="Free online Pixel Art maker for Minecraft and retro game assets.">
-
-    <!-- 1. Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-04KW4917B3"></script>
+    <title>SnapGlow | All-in-One Social Card Maker</title>
+    <meta name="description" content="Turn your code snippets, notes, and quotes into beautiful aesthetic images for Instagram, Twitter, and LinkedIn. Free, privacy-focused, and no login required.">
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZFC0SL7NFQ"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-ZFC0SL7NFQ');
     </script>
-
-    <!-- 2. Google AdSense -->
+    
+    <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2859402783329016"
      crossorigin="anonymous"></script>
     
-    <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- 引入字體庫 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Noto+Serif+TC:wght@500;700&display=swap" rel="stylesheet">
     
-    <!-- Babel for JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- 核心函式庫 -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-
     <style>
-        body {
-            font-family: 'Noto Sans TC', 'Inter', sans-serif;
-            background-color: #0f172a;
-            color: #e2e8f0;
-            touch-action: none; 
-            overflow: hidden; 
-        }
+        :root { --primary: #4f46e5; --bg-panel: #ffffff; --bg-main: #f3f4f6; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); margin: 0; padding: 20px; color: #1f2937; }
         
-        .checkerboard {
-            background-image: 
-                linear-gradient(45deg, #1e293b 25%, transparent 25%), 
-                linear-gradient(-45deg, #1e293b 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, #1e293b 75%), 
-                linear-gradient(-45deg, transparent 75%, #1e293b 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-            background-color: #0f172a; 
+        /* === Nav Bar (新增：互連導覽列) === */
+        .nav-bar {
+            max-width: 1200px; margin: 0 auto 20px auto; padding: 12px 20px;
+            background: #ffffff; border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 0.9rem;
+            color: #4b5563;
+        }
+        .nav-link { color: #6b7280; text-decoration: none; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+        .nav-link:hover { color: #111827; }
+        .nav-link.active { color: var(--primary); cursor: default; }
+        .nav-divider { width: 1px; height: 16px; background-color: #e5e7eb; }
+
+        .main-container { max-width: 1200px; margin: 0 auto; display: flex; gap: 30px; align-items: flex-start; }
+        
+        /* === 左側控制面板 === */
+        .controls-panel { 
+            flex: 1; background: var(--bg-panel); padding: 25px; border-radius: 16px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); position: sticky; top: 20px; position: relative; 
         }
 
-        .cursor-pan { cursor: grab; }
-        .cursor-panning { cursor: grabbing !important; }
-        .cursor-draw { cursor: crosshair; }
-        
-        .no-select {
-            user-select: none;
-            -webkit-user-select: none;
+        /* 懸浮語言選單 */
+        #langSwitcher {
+            position: absolute; top: 20px; right: 20px; width: auto; padding: 6px 12px; font-size: 0.8rem;
+            border: 1px solid #e5e7eb; background: #f9fafb; border-radius: 20px; cursor: pointer; z-index: 10;
         }
 
-        /* Custom Scrollbar */
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .custom-scroll::-webkit-scrollbar { width: 8px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #1e293b; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        h1 { margin-top: 0; margin-right: 60px; font-size: 1.5rem; color: #111827; letter-spacing: -0.025em; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.85rem; color: #4b5563;}
+        
+        textarea, input[type="text"], select:not(#langSwitcher) { 
+            width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; 
+            font-family: 'Inter', sans-serif; transition: 0.2s; font-size: 0.95rem;
+        }
+        textarea { height: 120px; resize: vertical; }
+
+        .mode-toggle { display: flex; gap: 5px; background: #f3f4f6; padding: 5px; border-radius: 10px; margin-bottom: 20px; }
+        .mode-btn { flex: 1; border: none; background: transparent; padding: 10px; border-radius: 8px; font-weight: 600; color: #6b7280; cursor: pointer; transition: 0.2s; }
+        .mode-btn.active { background: white; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+        .control-group { margin-bottom: 18px; }
+        .hidden { display: none; }
+        
+        /* 風格選擇器 */
+        .style-selector { display: flex; gap: 10px; margin-top: 5px; }
+        .style-option { 
+            flex: 1; height: 40px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; 
+            position: relative; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center; background: #f9fafb;
+            font-size: 0.8rem; font-weight: 600; color: #666;
+        }
+        .style-option:hover { transform: translateY(-2px); }
+        .style-option.selected { border-color: var(--primary); color: var(--primary); background: #eef2ff; }
+
+        /* Quote 樣式預覽小圖塊 */
+        .preview-box-classic { width: 20px; height: 20px; background: #fafaf9; border: 1px solid #ddd; }
+        .preview-box-dark { width: 20px; height: 20px; background: #1f2937; }
+        .preview-box-glass { width: 20px; height: 20px; background: linear-gradient(135deg, #eee, #ccc); }
+        .preview-box-outline { width: 20px; height: 20px; border: 2px solid #999; }
+
+        .btn-download { 
+            width: 100%; padding: 15px; background: linear-gradient(to right, #2563eb, #4f46e5); color: white; 
+            border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; 
+            margin-top: 10px; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); 
+        }
+
+        /* === 右側預覽區 === */
+        .preview-section { 
+            flex: 2; display: flex; flex-direction: column; align-items: center; 
+            background: #e5e7eb; border-radius: 16px; padding: 30px; 
+            border: 2px dashed #d1d5db; position: relative;
+        }
+
+        /* 視覺工具列 */
+        .visual-toolbar {
+            width: 100%; background: white; border-radius: 12px; padding: 15px 20px; margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-wrap: wrap; gap: 20px;
+            align-items: center; justify-content: space-between; box-sizing: border-box;
+        }
+        
+        .vt-group { display: flex; flex-direction: column; gap: 5px; min-width: 120px; flex: 1; }
+        .vt-label { font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .vt-colors { display: flex; gap: 8px; height: 36px; }
+        .vt-colors input[type="color"] { flex: 1; height: 100%; border: none; padding: 0; cursor: pointer; border-radius: 6px; }
+        
+        .vt-selector { display: flex; gap: 5px; height: 36px; }
+        .vt-opt { flex:1; font-size:0.8rem; display:flex; align-items:center; justify-content:center; border:1px solid #e5e7eb; border-radius:6px; cursor:pointer; background:#f9fafb; transition:0.2s; }
+        .vt-opt.selected { background: #4f46e5; color: white; border-color: #4f46e5; }
+        
+        .vt-slider { width: 100%; cursor: pointer; accent-color: #4f46e5; margin-top: 5px;}
+        .vt-val { float: right; color: #4f46e5; font-family: monospace; }
+
+        /* 預覽核心 Canvas */
+        #captureArea {
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            padding: 60px; display: flex; align-items: center; justify-content: center;
+            box-sizing: border-box; width: auto; min-width: 500px; max-width: 800px; border-radius: 4px;
+            transition: padding 0.1s ease;
+        }
+
+        .window-box {
+            border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            width: 100%; overflow: hidden; transition: all 0.3s ease;
+        }
+
+        .window-header { padding: 12px 16px; display: flex; align-items: center; background: transparent; position: relative;}
+        .header-title { flex: 1; text-align: center; color: #9ca3af; font-size: 0.8rem; font-weight: 500; z-index: 1;}
+        .controls-container { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; padding: 0 16px; z-index: 2; }
+        
+        /* Styles logic */
+        .win-mac .controls-container { left: 0; }
+        .win-mac .window-box { border-radius: 12px; }
+        .mac-dots { display: flex; gap: 8px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background: #ff5f56; } .yellow { background: #ffbd2e; } .green { background: #27c93f; }
+        .win-buttons { display: none; }
+
+        .win-windows .controls-container { right: 0; }
+        .win-windows .window-box { border-radius: 6px; }
+        .win-windows .mac-dots { display: none; }
+        .win-windows .win-buttons { display: flex; gap: 15px; }
+        .win-btn { width: 10px; height: 10px; position: relative; opacity: 0.6; }
+        .wb-min::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; background: currentColor; }
+        .wb-max { border: 1px solid currentColor; box-sizing: border-box; }
+        .wb-close::before, .wb-close::after { content: ''; position: absolute; top: 50%; left: 50%; width: 100%; height: 1px; background: currentColor; }
+        .wb-close::before { transform: translate(-50%, -50%) rotate(45deg); }
+        .wb-close::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+        .win-none .controls-container { display: none; }
+        .win-none .window-box { border-radius: 4px; }
+
+        /* Modes */
+        .mode-code .window-box { background: #282c34; color: #fff; }
+        .mode-code .window-header { background: #21252b; }
+        .mode-code pre { margin: 0; background: transparent !important; padding: 0 !important; text-shadow: none !important; }
+        .mode-code code { font-family: 'Fira Code', monospace !important; font-size: 15px; }
+        .mode-note .window-box { background: #ffffff; color: #374151; }
+        .mode-note .header-title { color: #d1d5db; }
+        .mode-note .win-btn { color: #9ca3af; } 
+        .mode-note .content-area { font-family: 'Inter', sans-serif; font-size: 18px; white-space: pre-wrap; }
+        .mode-quote .window-header { display: none; }
+        .mode-quote .content-area { font-family: 'Merriweather', 'Noto Serif TC', serif; font-size: 24px; font-style: italic; padding: 50px 40px; text-align: center; }
+        .author-text { margin-top: 20px; font-size: 1rem; font-family: 'Inter', sans-serif; font-style: normal; font-weight: 600; opacity: 0.8; }
+
+        /* Quote Styles */
+        .quote-style-classic .window-box { background: #fafaf9; color: #1c1917; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .quote-style-dark .window-box { background: #111827; color: #f9fafb; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .quote-style-dark .author-text { color: #d1d5db; }
+        .quote-style-glass .window-box { background: rgba(255, 255, 255, 0.25); border: 1px solid rgba(255, 255, 255, 0.4); color: #ffffff; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .quote-style-outline .window-box { background: transparent; border: 4px solid rgba(255,255,255,0.9); color: #ffffff; box-shadow: none; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        .content-area { padding: 30px; line-height: 1.6; min-height: 80px; }
+        
+        /* Plan A: Buy Me a Coffee Support Box Styles */
+        .support-box {
+            background: linear-gradient(to right, #fef3c7, #fff7ed);
+            border: 1px solid #fed7aa;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+            color: #9a3412;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .support-title { margin: 0 0 5px 0; font-size: 1.1rem; font-weight: 700; }
+        .support-desc { margin: 0 0 15px 0; font-size: 0.85rem; opacity: 0.9; }
+        .support-btn {
+            display: inline-block;
+            background: #ea580c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(234, 88, 12, 0.3);
+        }
+        .support-btn:hover { transform: translateY(-2px); background: #c2410c; box-shadow: 0 4px 6px rgba(234, 88, 12, 0.4); }
+
+        /* SEO Section Styles */
+        .seo-section { max-width: 800px; margin: 60px auto; padding: 0 20px; color: #4b5563; }
+        .seo-section h2 { text-align: center; color: #111827; font-size: 1.8rem; margin-bottom: 40px; }
+        .faq-item { margin-bottom: 20px; border-bottom: 1px solid #e5e7eb; padding-bottom: 20px; }
+        .faq-item h3 { font-size: 1.2rem; color: #1f2937; margin-bottom: 10px; }
+        .faq-item p { line-height: 1.6; }
+        
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .controls-panel { position: static; }
+            .preview-section { width: 100%; box-sizing: border-box; padding: 20px; }
+            .visual-toolbar { flex-direction: column; align-items: stretch; }
+            #captureArea { min-width: 100%; padding: 30px; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="root"></div>
+    <!-- 新增：互連導覽列 (Light Mode Style) -->
+    <nav class="nav-bar">
+        <span style="font-weight: 500;">More Tools:</span>
+        <a href="#" class="nav-link active">✨ SnapGlow</a>
+        <div class="nav-divider"></div>
+        <a href="https://pixel.snapglow.app" class="nav-link">🎨 PixelRetro</a>
+    </nav>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef, useCallback } = React;
+    <div class="main-container">
+        <!-- 左側面板 -->
+        <div class="controls-panel">
+            <select id="langSwitcher" onchange="changeLanguage(this.value)">
+                <option value="en">🌐 English</option>
+                <option value="zh">🌐 繁體中文</option>
+                <option value="ja">🌐 日本語</option>
+            </select>
 
-        // --- Network Nav Component ---
-        function NetworkNav() {
-            return (
-                <div className="bg-black/40 border-b border-slate-800 py-1.5 flex justify-center items-center gap-4 text-xs z-40 relative">
-                    <span className="text-slate-500 font-medium">More Tools:</span>
-                    <a href="https://snapglow.app" className="text-slate-300 hover:text-white hover:underline transition-colors flex items-center gap-1.5">
-                        ✨ SnapGlow
-                    </a>
-                    <span className="text-slate-700">|</span>
-                    <a href="#" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors flex items-center gap-1.5 pointer-events-none">
-                        🎨 PixelRetro
-                    </a>
+            <h1 data-i18n="title_main">✨ SnapGlow Maker</h1>
+
+            <div class="mode-toggle">
+                <button class="mode-btn active" onclick="setMode('code')" data-i18n="btn_code">💻 Code</button>
+                <button class="mode-btn" onclick="setMode('note')" data-i18n="btn_note">📝 Note</button>
+                <button class="mode-btn" onclick="setMode('quote')" data-i18n="btn_quote">❝ Quote</button>
+            </div>
+            
+            <div class="control-group">
+                <label id="contentLabel" data-i18n="label_content">Content</label>
+                <textarea id="textInput" oninput="updateContent()">console.log("Hello, World!");</textarea>
+            </div>
+
+            <!-- Window Styles -->
+            <div id="windowStyleOptions" class="control-group">
+                <label data-i18n="label_win_style">Window Style</label>
+                <div class="style-selector">
+                    <div class="style-option selected" onclick="setWindowStyle('mac', this)">macOS</div>
+                    <div class="style-option" onclick="setWindowStyle('windows', this)">Windows</div>
+                    <div class="style-option" onclick="setWindowStyle('none', this)">Minimal</div>
                 </div>
-            );
-        }
+            </div>
 
-        // --- Translations ---
-        const TRANSLATIONS = {
-            'zh-TW': {
-                title: 'Pixel Studio',
-                tools: '工具',
-                pencil: '畫筆 (P)',
-                eraser: '橡皮擦 (E)',
-                fill: '油漆桶 (F)',
-                dropper: '吸管 (I)',
-                grid: '網格',
-                zoom: '縮放',
-                reset: '重置視角',
-                undo: '復原',
-                download: '匯出圖片',
-                upload_title: '參考圖片',
-                upload_desc: '上傳圖片轉像素',
-                quick_size: '快速建立畫布',
-                custom_size: '自訂尺寸',
-                create: '建立',
-                width: '寬',
-                height: '高',
-                sponsor_scan: '掃描\n贊助',
-                sponsor_title: '喜歡這個工具嗎？',
-                sponsor_desc: '這是一個免費開源專案。\n您可以請我喝杯咖啡支持開發！',
-                sponsor_btn: 'Buy me a coffee',
-                sponsor_thanks: '感謝您的咖啡！☕',
-                confirm_new: '建立新畫布？當前進度將遺失。',
-                footer_privacy: '隱私權政策',
-                footer_terms: '服務條款',
-                footer_contact: '聯絡我們',
-                footer_lang: '語言',
-                modal_close: '關閉'
-            },
-            'en': {
-                title: 'Pixel Studio',
-                tools: 'Tools',
-                pencil: 'Pencil (P)',
-                eraser: 'Eraser (E)',
-                fill: 'Bucket (F)',
-                dropper: 'Picker (I)',
-                grid: 'Grid',
-                zoom: 'Zoom',
-                reset: 'Reset View',
-                undo: 'Undo',
-                download: 'Export PNG',
-                upload_title: 'Reference',
-                upload_desc: 'Image to Pixel',
-                quick_size: 'Quick Canvas',
-                custom_size: 'Custom Size',
-                create: 'Create',
-                width: 'W',
-                height: 'H',
-                sponsor_scan: 'Scan to\nSupport',
-                sponsor_title: 'Love this tool?',
-                sponsor_desc: 'Free & Open Source.\nBuy me a coffee to support!',
-                sponsor_btn: 'Buy me a coffee',
-                sponsor_thanks: 'Thanks! ☕',
-                confirm_new: 'Create new canvas? Unsaved progress will be lost.',
-                footer_privacy: 'Privacy Policy',
-                footer_terms: 'Terms of Service',
-                footer_contact: 'Contact Us',
-                footer_lang: 'Language',
-                modal_close: 'Close'
-            }
-        };
+            <!-- Code Options -->
+            <div id="codeOptions" class="control-group">
+                <label data-i18n="label_lang">Language</label>
+                <select id="langSelect" onchange="updateContent()">
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="css">CSS</option>
+                    <option value="markup">HTML</option>
+                </select>
+            </div>
 
-        // --- Legal Content ---
-        const LEGAL_CONTENT = {
-            'zh-TW': {
-                privacy: `<h2>隱私權政策</h2><p>最後更新日期：2026年</p><p>歡迎使用 Pixel Art Studio。我們非常重視您的隱私。</p><h3>1. 資訊收集</h3><p>本網站是一個純前端應用程式。您的所有畫作數據皆儲存於您的瀏覽器本地記憶體中，我們不會將您的畫作上傳至任何伺服器。</p><h3>2. Cookie 使用</h3><p>我們使用 Google AdSense 來顯示廣告，這可能會使用 Cookies 來根據您之前的訪問記錄投放廣告。</p>`,
-                terms: `<h2>服務條款</h2><p>最後更新日期：2026年</p><h3>1. 使用許可</h3><p>您可以免費使用本工具進行個人或商業創作。</p><h3>2. 免責聲明</h3><p>本工具按「原樣」提供，不提供任何形式的保證。開發者不對因使用本工具造成的任何數據丟失負責。</p>`,
-                contact: `<h2>聯絡我們</h2><p>如果您有任何問題、建議或發現 Bug，歡迎透過以下方式聯絡：</p><p>Email: SnapGlowApp@gmail.com</p>`
-            },
-            'en': {
-                privacy: `<h2>Privacy Policy</h2><p>Last updated: 2026</p><p>Welcome to Pixel Art Studio. We value your privacy.</p><h3>1. Information Collection</h3><p>This website is a client-side application. All your data is stored locally in your browser memory. We do not upload your artwork to any servers.</p><h3>2. Cookies</h3><p>We use Google AdSense to serve ads, which may use cookies to serve ads based on your prior visits.</p>`,
-                terms: `<h2>Terms of Service</h2><p>Last updated: 2026</p><h3>1. License</h3><p>You are free to use this tool for personal or commercial projects.</p><h3>2. Disclaimer</h3><p>The tool is provided "as is", without warranty of any kind. The developer is not liable for any data loss.</p>`,
-                contact: `<h2>Contact Us</h2><p>If you have any questions, suggestions or bug reports, please contact us at:</p><p>Email: SnapGlowApp@gmail.com</p>`
-            }
-        };
+            <!-- Quote Options -->
+            <div id="quoteOptions" class="control-group hidden">
+                <label data-i18n="label_style">Card Style</label>
+                <div class="style-selector">
+                    <div class="style-option opt-classic selected" onclick="setQuoteStyle('classic')" title="Classic"><div class="preview-box-classic"></div></div>
+                    <div class="style-option opt-dark" onclick="setQuoteStyle('dark')" title="Midnight"><div class="preview-box-dark"></div></div>
+                    <div class="style-option opt-glass" onclick="setQuoteStyle('glass')" title="Glass"><div class="preview-box-glass"></div></div>
+                    <div class="style-option opt-outline" onclick="setQuoteStyle('outline')" title="Outline"><div class="preview-box-outline"></div></div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <label data-i18n="label_author">Author</label>
+                    <input type="text" id="authorInput" placeholder="e.g. — Steve Jobs" oninput="updateContent()">
+                </div>
+            </div>
 
-        // --- Icons ---
-        const Icons = {
-            Pencil: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>,
-            Eraser: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>,
-            Fill: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 11.5a2.5 2.5 0 0 1 0 5H5.5a2.5 2.5 0 0 1 0-5H19Z"/><path d="m4 16.5 4.5 4.5"/><path d="m5 4 12.5 12.5"/><path d="M7 5.5a2.5 2.5 0 0 1 5 0V11"/></svg>,
-            Dropper: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L11.2 15.8"/><path d="m15 6 3 3"/><path d="m6.3 17.7 3-3"/></svg>,
-            Grid: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>,
-            Download: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>,
-            Undo: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>,
-            Upload: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>,
-            ZoomIn: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/></svg>,
-            ZoomOut: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/></svg>,
-            Mouse: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="7"/><path d="M12 6v4"/></svg>,
-            ResetView: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>,
-            Coffee: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>,
-            Globe: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-        };
+            <div class="control-group" id="titleGroup">
+                <label data-i18n="label_title">Window Title</label>
+                <input type="text" id="titleInput" placeholder="Untitled" oninput="updateTitle()">
+            </div>
+            
+            <button class="btn-download" onclick="downloadImage()" data-i18n="btn_download">📸 Download Image</button>
 
-        const rgbToHex = (r, g, b) => "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+            <!-- Support Box (Sidebar) -->
+            <div class="support-box">
+                <div class="support-title" data-i18n="support_title">☕ Enjoying SnapGlow?</div>
+                <p class="support-desc" data-i18n="support_desc">Support us to keep this tool free!</p>
+                <a href="https://buymeacoffee.com/snapglow" target="_blank" class="support-btn" data-i18n="support_btn">Buy me a Coffee</a>
+            </div>
+        </div>
 
-        // --- Components ---
-        function Modal({ isOpen, onClose, content }) {
-            if (!isOpen) return null;
-            return (
-                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-                    <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl relative">
-                        <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        </button>
-                        <div className="p-8 overflow-y-auto custom-scroll text-slate-300 space-y-4" dangerouslySetInnerHTML={{__html: content}} />
+        <!-- 右側預覽區 (包含視覺工具列) -->
+        <div class="preview-section">
+            
+            <!-- Visual Toolbar -->
+            <div class="visual-toolbar">
+                <div class="vt-group">
+                    <div class="vt-label" data-i18n="label_theme">Theme</div>
+                    <div class="vt-colors">
+                        <input type="color" id="color1" value="#667eea" oninput="updateStyle()">
+                        <input type="color" id="color2" value="#764ba2" oninput="updateStyle()">
                     </div>
                 </div>
-            );
-        }
-
-        function BuyMeCoffeeQR({ t }) {
-            return (
-                <div className="relative group flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 bg-white p-0.5 rounded-lg shadow-lg flex items-center justify-center overflow-hidden border-2 border-slate-600 group-hover:border-[#FFDD00] cursor-pointer transition-colors">
-                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://buymeacoffee.com/snapglow" alt="QR" className="w-full h-full object-contain"/>
+                <div class="vt-group">
+                    <div class="vt-label" data-i18n="label_grad_type">Type</div>
+                    <div class="vt-selector">
+                        <div class="vt-opt grad-opt selected" onclick="setGradType('linear', this)">↗</div>
+                        <div class="vt-opt grad-opt" onclick="setGradType('radial', this)">⭕</div>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-bold group-hover:text-[#FFDD00] text-center leading-tight whitespace-pre-line">
-                        {t('sponsor_scan')}
-                    </span>
-                    <div className="fixed left-20 bottom-4 w-56 h-56 bg-white p-4 rounded-xl shadow-2xl border-4 border-[#FFDD00] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform scale-90 group-hover:scale-100 origin-bottom-left flex flex-col items-center justify-center pointer-events-none group-hover:pointer-events-auto z-[100]">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://buymeacoffee.com/snapglow" alt="Scan to Sponsor" className="w-full h-full object-contain"/>
-                        <div className="absolute -top-3 bg-[#FFDD00] text-black text-xs font-bold px-3 py-1 rounded-full shadow-sm whitespace-nowrap">
-                            {t('sponsor_thanks')}
+                </div>
+                <div class="vt-group" id="angleControl">
+                    <div class="vt-label"><span data-i18n="label_grad_angle">Angle</span> <span id="val_angle" class="vt-val">135°</span></div>
+                    <input type="range" id="angleInput" class="vt-slider" min="0" max="360" value="135" oninput="updateStyle()">
+                </div>
+                <div class="vt-group">
+                    <div class="vt-label"><span data-i18n="label_padding">Padding</span> <span id="val_pad" class="vt-val">60px</span></div>
+                    <input type="range" id="paddingInput" class="vt-slider" min="20" max="150" value="60" oninput="updateStyle()">
+                </div>
+            </div>
+
+            <!-- Capture Area -->
+            <div id="captureArea" class="mode-code win-mac">
+                <div class="window-box">
+                    <div class="window-header">
+                        <div class="controls-container">
+                            <div class="mac-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+                            <div class="win-buttons"><div class="win-btn wb-min"></div><div class="win-btn wb-max"></div><div class="win-btn wb-close"></div></div>
                         </div>
+                        <div class="header-title" id="previewTitle">Untitled</div>
+                    </div>
+                    <div class="window-content content-area">
+                        <code id="displayCode"></code>
+                        <div id="displayText" style="display:none;"></div>
+                        <div id="displayAuthor" class="author-text" style="display:none;"></div>
                     </div>
                 </div>
-            );
+            </div>
+            
+            <!-- Support Box (Bottom) -->
+            <div class="support-box" style="width: 100%; margin-top: 30px; box-sizing: border-box;">
+                <div class="support-title" data-i18n="support_title">☕ Enjoying SnapGlow?</div>
+                <p class="support-desc" data-i18n="support_desc">Support us to keep this tool free!</p>
+                <a href="https://buymeacoffee.com/snapglow" target="_blank" class="support-btn" data-i18n="support_btn">Buy me a Coffee</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEO & FAQ Section -->
+    <section class="seo-section">
+        <h2 data-i18n="seo_h2">Why use SnapGlow?</h2>
+
+        <div class="faq-item">
+            <h3 data-i18n="seo_q1_title">🚀 Aesthetic Code Snippets</h3>
+            <p data-i18n="seo_q1_desc">SnapGlow is the best tool to convert your source code to beautiful images with syntax highlighting and window frames.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3 data-i18n="seo_q2_title">✨ Share Notes & Quotes</h3>
+            <p data-i18n="seo_q2_desc">Turn ChatGPT conversations, Notion notes, and daily quotes into viral-worthy social media cards.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3 data-i18n="seo_q3_title">🔒 Privacy First</h3>
+            <p data-i18n="seo_q3_desc">SnapGlow works entirely in your browser. Your data never leaves your device. No login required.</p>
+        </div>
+        
+        <div style="text-align:center; font-size: 0.8rem; margin-top: 40px;">
+            <a href="privacy.html" style="color:#666; text-decoration:none; margin:0 10px;">Privacy Policy</a> | 
+            <a href="terms.html" style="color:#666; text-decoration:none; margin:0 10px;">Terms</a> | 
+            <a href="contact.html" style="color:#666; text-decoration:none; margin:0 10px;">Contact</a>
+        </div>
+    </section>
+
+    <script>
+        // === Translations ===
+        const translations = {
+            "en": {
+                "title_main": "✨ SnapGlow Maker",
+                "btn_code": "💻 Code",
+                "btn_note": "📝 Note",
+                "btn_quote": "❝ Quote",
+                "label_content_code": "Code Snippet",
+                "label_content_note": "Note Content",
+                "label_content_quote": "Quote Text",
+                "label_lang": "Language",
+                "label_author": "Author / Source",
+                "label_title": "Window Title",
+                "label_style": "Card Style",
+                "label_win_style": "Window Style",
+                "label_theme": "Theme",
+                "label_grad_type": "Type",
+                "label_grad_angle": "Angle",
+                "label_padding": "Padding",
+                "btn_download": "📸 Download Image",
+                "ph_title": "Untitled",
+                "ph_author": "e.g. — Steve Jobs",
+                "support_title": "☕ Enjoying SnapGlow?",
+                "support_desc": "Support us to keep this tool free!",
+                "support_btn": "Buy me a Coffee",
+                "seo_h2": "Why use SnapGlow for Social Media?",
+                "seo_q1_title": "🚀 Aesthetic Code Snippets",
+                "seo_q1_desc": "SnapGlow helps you convert source code to beautiful images with syntax highlighting. Perfect for sharing Python, JS, or CSS on Instagram and Twitter.",
+                "seo_q2_title": "✨ Share AI Prompts & Quotes",
+                "seo_q2_desc": "Turn ChatGPT responses, Notion notes, and inspirational quotes into viral-worthy social media cards with custom backgrounds.",
+                "seo_q3_title": "🔒 Privacy First & Free",
+                "seo_q3_desc": "Everything happens in your browser. Your text and code never leave your device. No login or credit card required."
+            },
+            "zh": {
+                "title_main": "✨ 美圖產生器",
+                "btn_code": "💻 程式碼",
+                "btn_note": "📝 筆記/AI",
+                "btn_quote": "❝ 語錄",
+                "label_content_code": "程式碼片段",
+                "label_content_note": "筆記內容",
+                "label_content_quote": "語錄內容",
+                "label_lang": "程式語言",
+                "label_author": "作者 / 出處",
+                "label_title": "視窗標題",
+                "label_style": "卡片風格",
+                "label_win_style": "視窗邊框",
+                "label_theme": "背景配色",
+                "label_grad_type": "漸層樣式",
+                "label_grad_angle": "漸層角度",
+                "label_padding": "邊距大小",
+                "btn_download": "📸 下載圖片",
+                "ph_title": "未命名標題",
+                "ph_author": "例如：— 賈伯斯",
+                "support_title": "☕ 喜歡 SnapGlow 嗎？",
+                "support_desc": "您的支持是我們開發的動力！",
+                "support_btn": "請我喝杯咖啡",
+                "seo_h2": "為什麼選擇 SnapGlow？",
+                "seo_q1_title": "🚀 製作最美的程式碼截圖",
+                "seo_q1_desc": "SnapGlow 是將程式碼轉換為圖片的最佳工具。支援語法高亮與 macOS 風格視窗，讓你的 Python 或 JavaScript 代碼在 Instagram 上脫穎而出。",
+                "seo_q2_title": "✨ 分享 AI 對話與語錄",
+                "seo_q2_desc": "不再只有無聊的截圖！將 ChatGPT 的回答、Notion 筆記或勵志語錄，一鍵轉換成質感滿分的社群卡片。",
+                "seo_q3_title": "🔒 隱私優先，完全免費",
+                "seo_q3_desc": "所有運算都在您的瀏覽器中完成。您的程式碼與文字永遠不會上傳到伺服器，安全且無需登入。",
+            },
+            "ja": {
+                "title_main": "✨ スナップ・メーカー",
+                "btn_code": "💻 コード",
+                "btn_note": "📝 メモ/AI",
+                "btn_quote": "❝ 引用",
+                "label_content_code": "コードスニペット",
+                "label_content_note": "メモ内容",
+                "label_content_quote": "引用テキスト",
+                "label_lang": "言語",
+                "label_author": "著者 / ソース",
+                "label_title": "ウィンドウ名",
+                "label_style": "カードスタイル",
+                "label_win_style": "ウィンドウスタイル",
+                "label_theme": "背景テーマ",
+                "label_grad_type": "グラデーション",
+                "label_grad_angle": "角度",
+                "label_padding": "余白サイズ",
+                "btn_download": "📸 画像を保存",
+                "ph_title": "無題",
+                "ph_author": "例：— スティーブ・ジョブズ",
+                "support_title": "☕ 気に入りましたか？",
+                "support_desc": "開発をサポートしてください！",
+                "support_btn": "コーヒーを奢る",
+                "seo_h2": "なぜ SnapGlow を選ぶのか？",
+                "seo_q1_title": "🚀 美しいコード画像を生成",
+                "seo_q1_desc": "ソースコードをシンタックスハイライト付きの美しい画像に変換します。Instagram や Twitter で技術情報を共有するのに最適です。",
+                "seo_q2_title": "✨ AIチャットや名言をシェア",
+                "seo_q2_desc": "ChatGPTの回答やNotionのメモ、心に響く名言を、洗練されたソーシャルメディアカードに瞬時に変換します。",
+                "seo_q3_title": "🔒 プライバシー重視＆無料",
+                "seo_q3_desc": "すべてブラウザ内で完結します。あなたのデータがサーバーに送信されることはありません。ログイン不要で、今すぐ無料で使えます。"
+            }
+        };
+
+        let currentLang = 'en';
+        let currentMode = 'code';
+        let currentQuoteStyle = 'classic'; 
+        let currentWinStyle = 'mac';
+        let currentGradType = 'linear';
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerText = t[key];
+            });
+            updateContentLabel();
+            document.getElementById('titleInput').placeholder = t['ph_title'];
+            document.getElementById('authorInput').placeholder = t['ph_author'];
         }
 
-        function BuyMeCoffeeBanner({ t }) {
-            return (
-                <div className="w-full p-4 bg-slate-800/50 rounded-xl border border-dashed border-slate-700 hover:border-[#FFDD00] hover:bg-slate-800 transition-all group flex flex-col items-center gap-3 text-center">
-                    <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center group-hover:bg-[#FFDD00] group-hover:text-black transition-colors text-slate-400">
-                        <Icons.Coffee />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-bold text-slate-200 group-hover:text-white">{t('sponsor_title')}</h3>
-                        <p className="text-[10px] text-slate-400 mt-1 leading-relaxed whitespace-pre-line">{t('sponsor_desc')}</p>
-                    </div>
-                    <a href="https://buymeacoffee.com/snapglow" target="_blank" className="w-full py-2 bg-[#FFDD00] hover:bg-[#ffea5c] text-black text-xs font-bold rounded-full shadow-lg hover:shadow-yellow-500/20 transition-all active:scale-95 flex items-center justify-center gap-2">
-                        <Icons.Coffee /> {t('sponsor_btn')}
-                    </a>
-                </div>
-            );
+        function updateContentLabel() {
+            const label = document.getElementById('contentLabel');
+            const t = translations[currentLang];
+            if(currentMode === 'code') label.innerText = t['label_content_code'];
+            else if(currentMode === 'note') label.innerText = t['label_content_note'];
+            else if(currentMode === 'quote') label.innerText = t['label_content_quote'];
         }
 
-        function App() {
-            const [lang, setLang] = useState('zh-TW');
-            const [dimensions, setDimensions] = useState({ width: 32, height: 32 });
-            const [pixels, setPixels] = useState(Array(32 * 32).fill("")); 
-            const [tool, setTool] = useState('pencil');
-            const [selectedColor, setSelectedColor] = useState('#000000');
-            const [recentColors, setRecentColors] = useState(['#000000', '#ffffff']);
-            const [zoom, setZoom] = useState(20);
-            const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
-            const [showGrid, setShowGrid] = useState(true);
-            const [history, setHistory] = useState([]);
-            const [customW, setCustomW] = useState(64);
-            const [customH, setCustomH] = useState(64);
-            const [activeModal, setActiveModal] = useState(null);
+        const textInput = document.getElementById('textInput');
+        const authorInput = document.getElementById('authorInput');
+        const captureArea = document.getElementById('captureArea');
+        const displayCode = document.getElementById('displayCode');
+        const displayText = document.getElementById('displayText');
+        const displayAuthor = document.getElementById('displayAuthor');
+        const angleControl = document.getElementById('angleControl');
 
-            const canvasRef = useRef(null);
-            const containerRef = useRef(null);
-            const isDrawing = useRef(false);
-            const isPanning = useRef(false);
-            const lastMousePos = useRef({ x: 0, y: 0 });
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
 
-            const t = (key) => TRANSLATIONS[lang][key] || key;
+            captureArea.classList.remove('mode-code', 'mode-note', 'mode-quote');
+            captureArea.classList.add(`mode-${mode}`);
+            
+            const winStyleOpts = document.getElementById('windowStyleOptions');
+            const quoteOpts = document.getElementById('quoteOptions');
+            const codeOpts = document.getElementById('codeOptions');
+            const titleGrp = document.getElementById('titleGroup');
 
-            const drawCanvas = useCallback(() => {
-                const canvas = canvasRef.current;
-                if (!canvas) return;
-                const ctx = canvas.getContext('2d');
-                canvas.width = dimensions.width;
-                canvas.height = dimensions.height;
-                ctx.clearRect(0, 0, dimensions.width, dimensions.height);
-                pixels.forEach((color, i) => {
-                    if (color) {
-                        const x = i % dimensions.width;
-                        const y = Math.floor(i / dimensions.width);
-                        ctx.fillStyle = color;
-                        ctx.fillRect(x, y, 1, 1);
-                    }
-                });
-            }, [pixels, dimensions]);
-
-            useEffect(() => { drawCanvas(); }, [drawCanvas]);
-
-            const updateRecentColors = (color) => {
-                setRecentColors(prev => {
-                    const filtered = prev.filter(c => c !== color);
-                    return [color, ...filtered].slice(0, 5);
-                });
-            };
-
-            const resizeCanvas = (w, h) => {
-                const newPixels = Array(w * h).fill("");
-                setDimensions({ width: w, height: h });
-                setPixels(newPixels);
-                setHistory([]);
-                setZoom(w > 64 ? 10 : 20);
-                setPanOffset({ x: 0, y: 0 });
-            };
-
-            const saveHistory = () => {
-                setHistory(prev => {
-                    const newHist = [...prev, [...pixels]];
-                    if (newHist.length > 30) newHist.shift();
-                    return newHist;
-                });
-            };
-
-            const handleUndo = () => {
-                if (history.length === 0) return;
-                const prevPixels = history[history.length - 1];
-                setHistory(prev => prev.slice(0, -1));
-                setPixels(prevPixels);
-            };
-
-            const handleWheel = (e) => {
-                e.preventDefault();
-                const delta = e.deltaY > 0 ? -1 : 1;
-                const speed = 2;
-                setZoom(prev => Math.max(1, Math.min(80, prev + (delta * speed))));
-            };
-
-            const handleMouseDown = (e) => {
-                if (e.button === 2 || e.button === 1) {
-                    isPanning.current = true;
-                    lastMousePos.current = { x: e.clientX, y: e.clientY };
-                    e.preventDefault();
-                } else if (e.button === 0) {
-                    isDrawing.current = true;
-                    saveHistory();
-                    if (tool === 'pencil' || tool === 'fill') updateRecentColors(selectedColor);
-                    paint(e);
+            if (mode === 'quote') {
+                winStyleOpts.classList.add('hidden');
+                quoteOpts.classList.remove('hidden');
+                codeOpts.classList.add('hidden');
+                titleGrp.classList.add('hidden');
+                captureArea.classList.add(`quote-style-${currentQuoteStyle}`);
+                textInput.value = `Stay hungry, stay foolish.`;
+                authorInput.value = `— Steve Jobs`;
+            } else {
+                winStyleOpts.classList.remove('hidden');
+                quoteOpts.classList.add('hidden');
+                titleGrp.classList.remove('hidden');
+                captureArea.classList.remove(`quote-style-${currentQuoteStyle}`);
+                if (mode === 'code') {
+                    codeOpts.classList.remove('hidden');
+                    textInput.value = `console.log("Hello, World!");`;
+                } else {
+                    codeOpts.classList.add('hidden');
+                    textInput.value = `Here are 3 tips:\n1. Keep it simple.\n2. Practice daily.\n3. Drink coffee. ☕`;
                 }
-            };
+            }
+            updateContentLabel();
+            updateContent();
+        }
 
-            const handleMouseMove = (e) => {
-                if (isPanning.current) {
-                    const dx = e.clientX - lastMousePos.current.x;
-                    const dy = e.clientY - lastMousePos.current.y;
-                    setPanOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
-                    lastMousePos.current = { x: e.clientX, y: e.clientY };
-                    return;
+        function setWindowStyle(style, el) {
+            currentWinStyle = style;
+            const parent = el.parentElement;
+            parent.querySelectorAll('.style-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            captureArea.classList.remove('win-mac', 'win-windows', 'win-none');
+            captureArea.classList.add(`win-${style}`);
+        }
+
+        function setQuoteStyle(style) {
+            currentQuoteStyle = style;
+            document.querySelectorAll('#quoteOptions .style-option').forEach(opt => opt.classList.remove('selected'));
+            document.querySelector(`.opt-${style}`).classList.add('selected');
+            if (currentMode === 'quote') {
+                captureArea.classList.remove('quote-style-classic', 'quote-style-dark', 'quote-style-glass', 'quote-style-outline');
+                captureArea.classList.add(`quote-style-${style}`);
+            }
+        }
+
+        function setGradType(type, el) {
+            currentGradType = type;
+            document.querySelectorAll('.grad-opt').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            if (type === 'linear') {
+                angleControl.classList.remove('hidden');
+                angleControl.style.display = 'flex';
+            } else {
+                angleControl.classList.add('hidden');
+                angleControl.style.display = 'none';
+            }
+            updateStyle();
+        }
+
+        function updateContent() {
+            const raw = textInput.value;
+            if (currentMode === 'code') {
+                displayCode.style.display = 'block';
+                displayText.style.display = 'none';
+                displayAuthor.style.display = 'none';
+                const lang = document.getElementById('langSelect').value;
+                displayCode.className = `language-${lang}`;
+                displayCode.textContent = raw;
+                Prism.highlightElement(displayCode);
+            } else {
+                displayCode.style.display = 'none';
+                displayText.style.display = 'block';
+                displayText.innerText = raw;
+                if (currentMode === 'quote') {
+                    displayAuthor.style.display = 'block';
+                    displayAuthor.innerText = authorInput.value;
+                } else {
+                    displayAuthor.style.display = 'none';
                 }
-                if (isDrawing.current) paint(e);
-            };
+            }
+        }
 
-            const handleMouseUp = () => {
-                isDrawing.current = false;
-                isPanning.current = false;
-            };
+        function updateTitle() { document.getElementById('previewTitle').innerText = document.getElementById('titleInput').value; }
 
-            const handleContextMenu = (e) => e.preventDefault();
+        function updateStyle() {
+            const c1 = document.getElementById('color1').value;
+            const c2 = document.getElementById('color2').value;
+            const pad = document.getElementById('paddingInput').value;
+            const angle = document.getElementById('angleInput').value;
+            
+            if (currentGradType === 'linear') {
+                captureArea.style.background = `linear-gradient(${angle}deg, ${c1}, ${c2})`;
+                document.getElementById('val_angle').innerText = `${angle}°`;
+            } else {
+                captureArea.style.background = `radial-gradient(circle, ${c1}, ${c2})`;
+            }
+            
+            captureArea.style.padding = `${pad}px`;
+            document.getElementById('val_pad').innerText = `${pad}px`;
+        }
 
-            const getPixelIndex = (e) => {
-                const canvas = canvasRef.current;
-                const rect = canvas.getBoundingClientRect();
-                const xRaw = e.clientX - rect.left;
-                const yRaw = e.clientY - rect.top;
-                const scaleX = dimensions.width / rect.width;
-                const scaleY = dimensions.height / rect.height;
-                const x = Math.floor(xRaw * scaleX);
-                const y = Math.floor(yRaw * scaleY);
-                if (x < 0 || x >= dimensions.width || y < 0 || y >= dimensions.height) return null;
-                return y * dimensions.width + x;
-            };
-
-            const paint = (e) => {
-                const idx = getPixelIndex(e);
-                if (idx === null) return;
-                const currentPixels = [...pixels];
-                const targetColor = currentPixels[idx];
-
-                if (tool === 'pencil') {
-                    if (targetColor === selectedColor) return;
-                    currentPixels[idx] = selectedColor;
-                    setPixels(currentPixels);
-                } else if (tool === 'eraser') {
-                    if (targetColor === "") return;
-                    currentPixels[idx] = "";
-                    setPixels(currentPixels);
-                } else if (tool === 'dropper') {
-                    if (targetColor) {
-                        setSelectedColor(targetColor);
-                        updateRecentColors(targetColor);
-                        setTool('pencil');
-                    }
-                } else if (tool === 'fill') {
-                    if (targetColor === selectedColor) return;
-                    const stack = [idx];
-                    const w = dimensions.width;
-                    while(stack.length) {
-                        const curIdx = stack.pop();
-                        const cx = curIdx % w;
-                        const cy = Math.floor(curIdx / w);
-                        if (currentPixels[curIdx] === targetColor) {
-                            currentPixels[curIdx] = selectedColor;
-                            if (cx > 0) stack.push(curIdx - 1);
-                            if (cx < w - 1) stack.push(curIdx + 1);
-                            if (cy > 0) stack.push(curIdx - w);
-                            if (cy < dimensions.height - 1) stack.push(curIdx + w);
-                        }
-                    }
-                    setPixels(currentPixels);
-                    isDrawing.current = false;
-                }
-            };
-
-            const resetView = () => {
-                setPanOffset({ x: 0, y: 0 });
-                setZoom(20);
-            };
-
-            // NEW: Modified Image Upload Handler
-            const handleImageUpload = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        // 1. Calculate safe dimensions (Max 128px for performance)
-                        const MAX_SIZE = 128;
-                        let w = img.width;
-                        let h = img.height;
-                        
-                        // Scale down if too big
-                        if (w > MAX_SIZE || h > MAX_SIZE) {
-                            const ratio = Math.min(MAX_SIZE / w, MAX_SIZE / h);
-                            w = Math.floor(w * ratio);
-                            h = Math.floor(h * ratio);
-                        }
-
-                        // 2. Prepare canvas
-                        const tempCanvas = document.createElement('canvas');
-                        const ctx = tempCanvas.getContext('2d');
-                        tempCanvas.width = w;
-                        tempCanvas.height = h;
-                        
-                        // 3. Draw image resized
-                        ctx.drawImage(img, 0, 0, w, h);
-                        
-                        // 4. Extract pixel data
-                        const data = ctx.getImageData(0, 0, w, h).data;
-                        const newPixels = Array(w * h).fill("");
-                        
-                        for (let i = 0; i < data.length; i+=4) {
-                            // Check alpha to detect transparency
-                            if (data[i+3] > 50) { 
-                                newPixels[i/4] = rgbToHex(data[i], data[i+1], data[i+2]);
-                            }
-                        }
-                        
-                        // 5. Update state
-                        if(confirm(t('confirm_new'))) {
-                            setDimensions({ width: w, height: h });
-                            setPixels(newPixels);
-                            setHistory([]); // Clear history
-                            // Auto zoom to fit
-                            const newZoom = Math.floor(500 / Math.max(w, h));
-                            setZoom(Math.max(2, newZoom));
-                            setPanOffset({ x: 0, y: 0 });
-                        }
-                    };
-                    img.src = event.target.result;
-                };
-                reader.readAsDataURL(file);
-                e.target.value = '';
-            };
-
-            const downloadImage = () => {
+        function downloadImage() {
+            const btn = document.querySelector('.btn-download');
+            const originalText = btn.innerText;
+            btn.innerText = "Processing...";
+            html2canvas(captureArea, { scale: 2, backgroundColor: null, useCORS: true }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `pixel-art-${dimensions.width}x${dimensions.height}.png`;
-                const exportCanvas = document.createElement('canvas');
-                const scale = 20;
-                exportCanvas.width = dimensions.width * scale;
-                exportCanvas.height = dimensions.height * scale;
-                const ctx = exportCanvas.getContext('2d');
-                ctx.imageSmoothingEnabled = false;
-                ctx.drawImage(canvasRef.current, 0, 0, exportCanvas.width, exportCanvas.height);
-                link.href = exportCanvas.toDataURL('image/png');
+                link.download = `snapglow-${currentMode}-${Date.now()}.png`;
+                link.href = canvas.toDataURL();
                 link.click();
-            };
-
-            return (
-                <div className="h-screen flex flex-col overflow-hidden bg-[#0f172a] no-select">
-                    {/* Top Network Nav */}
-                    <NetworkNav />
-
-                    {/* Header */}
-                    <header className="bg-slate-900 border-b border-slate-800 p-3 flex justify-between items-center z-30 shrink-0 shadow-md">
-                        <div className="flex items-center gap-4">
-                            <h1 className="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                                <span className="bg-indigo-600 rounded p-1">🎨</span>
-                                {t('title')}
-                            </h1>
-                            <div className="hidden md:flex items-center gap-2 text-xs text-slate-400 bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700">
-                                <span>{dimensions.width} x {dimensions.height}</span>
-                                <span className="w-px h-3 bg-slate-600"></span>
-                                <span className="flex items-center gap-1"><Icons.Mouse/> {lang === 'zh-TW' ? '右鍵拖曳 / 滾輪縮放' : 'Right-click Pan / Wheel Zoom'}</span>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <button 
-                                onClick={() => setLang(lang === 'zh-TW' ? 'en' : 'zh-TW')}
-                                className="text-slate-400 hover:text-white flex items-center gap-1 text-xs font-bold transition-colors bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 hover:border-indigo-500"
-                            >
-                                <Icons.Globe />
-                                {lang === 'zh-TW' ? 'English' : '繁體中文'}
-                            </button>
-                            <button onClick={downloadImage} className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-indigo-500/20 active:scale-95">
-                                <Icons.Download /> {t('download')}
-                            </button>
-                        </div>
-                    </header>
-
-                    <div className="flex-1 flex overflow-hidden">
-                        {/* LEFT: Tools */}
-                        <aside className="w-16 sm:w-20 bg-slate-900 border-r border-slate-800 flex flex-col items-center py-6 gap-6 shrink-0 z-50 shadow-xl">
-                            <div className="flex flex-col gap-3 w-full px-3">
-                                <ToolBtn icon={<Icons.Pencil/>} active={tool==='pencil'} onClick={()=>setTool('pencil')} color="blue" tip={t('pencil')} />
-                                <ToolBtn icon={<Icons.Eraser/>} active={tool==='eraser'} onClick={()=>setTool('eraser')} color="red" tip={t('eraser')} />
-                                <ToolBtn icon={<Icons.Fill/>} active={tool==='fill'} onClick={()=>setTool('fill')} color="green" tip={t('fill')} />
-                                <ToolBtn icon={<Icons.Dropper/>} active={tool==='dropper'} onClick={()=>setTool('dropper')} color="yellow" tip={t('dropper')} />
-                            </div>
-                            <div className="w-full px-4"><div className="h-px bg-slate-800"></div></div>
-                            <div className="flex flex-col gap-3 items-center flex-1">
-                                <div className="relative group">
-                                    <input 
-                                        type="color" 
-                                        value={selectedColor} 
-                                        onChange={(e) => {
-                                            setSelectedColor(e.target.value);
-                                            setTool('pencil');
-                                        }}
-                                        className="w-10 h-10 p-0 border-0 rounded-xl overflow-hidden cursor-pointer ring-2 ring-slate-700 group-hover:ring-indigo-500 transition-all shadow-lg"
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    {recentColors.slice(0, 5).map((c, i) => (
-                                        <button 
-                                            key={i} 
-                                            style={{backgroundColor: c}}
-                                            onClick={() => {setSelectedColor(c); setTool('pencil');}}
-                                            className="w-6 h-6 rounded-md border border-slate-600 hover:scale-125 hover:border-white transition-all shadow-sm"
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="pb-4">
-                                <BuyMeCoffeeQR t={t} />
-                            </div>
-                        </aside>
-
-                        {/* CENTER: Canvas */}
-                        <main className="flex-1 relative overflow-hidden flex flex-col bg-[#0f172a]">
-                            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-slate-800/80 backdrop-blur-md border border-slate-600/50 p-1.5 rounded-full flex gap-3 items-center shadow-2xl z-30 pointer-events-auto">
-                                <button onClick={handleUndo} disabled={history.length===0} className="p-2 hover:bg-white/10 rounded-full text-slate-200 disabled:opacity-30 transition-colors" title={t('undo')}>
-                                    <Icons.Undo />
-                                </button>
-                                <div className="w-px h-5 bg-slate-600"></div>
-                                <button onClick={() => setShowGrid(!showGrid)} className={`p-2 rounded-full transition-colors ${showGrid ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-300 hover:bg-white/10'}`} title={t('grid')}>
-                                    <Icons.Grid />
-                                </button>
-                                <div className="w-px h-5 bg-slate-600"></div>
-                                <div className="flex items-center gap-2 px-2 text-slate-300">
-                                    <Icons.ZoomOut />
-                                    <input 
-                                        type="range" 
-                                        min="1" 
-                                        max="80" 
-                                        value={zoom} 
-                                        onChange={(e) => setZoom(Number(e.target.value))}
-                                        className="w-24 h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-                                    />
-                                    <Icons.ZoomIn />
-                                </div>
-                                <div className="w-px h-5 bg-slate-600"></div>
-                                <button onClick={resetView} className="p-2 hover:bg-white/10 rounded-full text-slate-200 transition-colors" title={t('reset')}>
-                                    <Icons.ResetView />
-                                </button>
-                            </div>
-
-                            <div 
-                                ref={containerRef}
-                                className={`w-full h-full checkerboard flex items-center justify-center overflow-hidden relative cursor-draw`}
-                                onContextMenu={handleContextMenu}
-                                onMouseDown={handleMouseDown}
-                                onMouseMove={handleMouseMove}
-                                onMouseUp={handleMouseUp}
-                                onMouseLeave={handleMouseUp}
-                                onWheel={handleWheel}
-                            >
-                                <div 
-                                    className="relative shadow-2xl bg-white origin-center will-change-transform shrink-0" 
-                                    style={{
-                                        width: dimensions.width * zoom,
-                                        height: dimensions.height * zoom,
-                                        transform: `translate(${panOffset.x}px, ${panOffset.y}px)`, 
-                                        backgroundImage: showGrid ? `
-                                            linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
-                                            linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)
-                                        ` : 'none',
-                                        backgroundSize: `${zoom}px ${zoom}px`,
-                                        imageRendering: 'pixelated'
-                                    }}
-                                >
-                                    <canvas 
-                                        ref={canvasRef}
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            imageRendering: 'pixelated',
-                                            display: 'block',
-                                            pointerEvents: 'none'
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        </main>
-
-                        {/* RIGHT: Settings */}
-                        <aside className="w-64 bg-slate-900 border-l border-slate-800 p-6 flex flex-col gap-6 shrink-0 overflow-y-auto z-20 shadow-xl">
-                            <div>
-                                <h3 className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-                                    {t('quick_size')}
-                                </h3>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {[32, 64, 96, 128].map(s => (
-                                        <button 
-                                            key={s}
-                                            onClick={() => {
-                                                if(confirm(t('confirm_new'))) resizeCanvas(s, s);
-                                            }}
-                                            className="bg-slate-800 hover:bg-slate-700 text-slate-300 py-3 rounded-lg text-xs font-bold font-mono transition-all border border-slate-700 hover:border-indigo-500 hover:text-white"
-                                        >
-                                            {s}x{s}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-800">
-                                <h3 className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-3">{t('custom_size')}</h3>
-                                <div className="flex gap-2 items-center mb-3">
-                                    <input 
-                                        type="number" 
-                                        value={customW}
-                                        onChange={(e) => setCustomW(Math.min(256, Number(e.target.value)))}
-                                        className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-center text-sm focus:border-indigo-500 outline-none text-white font-mono" 
-                                        placeholder={t('width')}
-                                    />
-                                    <span className="text-slate-500 font-bold">×</span>
-                                    <input 
-                                        type="number" 
-                                        value={customH}
-                                        onChange={(e) => setCustomH(Math.min(256, Number(e.target.value)))}
-                                        className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-center text-sm focus:border-indigo-500 outline-none text-white font-mono"
-                                        placeholder={t('height')}
-                                    />
-                                </div>
-                                <button 
-                                    onClick={() => {
-                                        if(customW > 0 && customH > 0) {
-                                            if(confirm(t('confirm_new'))) resizeCanvas(customW, customH);
-                                        }
-                                    }}
-                                    className="w-full bg-slate-700 hover:bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold transition-all"
-                                >
-                                    {t('create')}
-                                </button>
-                            </div>
-
-                             <div>
-                                <h3 className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-3">{t('upload_title')}</h3>
-                                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-slate-700 border-dashed rounded-xl cursor-pointer hover:bg-slate-800/50 hover:border-indigo-500/50 transition-all group">
-                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <div className="text-slate-500 group-hover:text-indigo-400 mb-2"><Icons.Upload /></div>
-                                        <p className="text-xs text-slate-500 group-hover:text-slate-300 font-medium">{t('upload_desc')}</p>
-                                    </div>
-                                    <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
-                                </label>
-                            </div>
-
-                            <div className="mt-auto flex flex-col gap-4">
-                                <div className="border-t border-slate-800 pt-4">
-                                    <BuyMeCoffeeBanner t={t} />
-                                </div>
-                                
-                                <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-[10px] text-slate-500 pt-2 pb-2">
-                                    <button onClick={() => setActiveModal('privacy')} className="hover:text-slate-300 transition-colors hover:underline">
-                                        {t('footer_privacy')}
-                                    </button>
-                                    <button onClick={() => setActiveModal('terms')} className="hover:text-slate-300 transition-colors hover:underline">
-                                        {t('footer_terms')}
-                                    </button>
-                                    <button onClick={() => setActiveModal('contact')} className="hover:text-slate-300 transition-colors hover:underline">
-                                        {t('footer_contact')}
-                                    </button>
-                                </div>
-                            </div>
-                        </aside>
-                    </div>
-
-                    <Modal 
-                        isOpen={!!activeModal} 
-                        onClose={() => setActiveModal(null)} 
-                        content={activeModal ? LEGAL_CONTENT[lang][activeModal] : ''}
-                    />
-                </div>
-            );
+                btn.innerText = originalText;
+            });
         }
 
-        function ToolBtn({ icon, active, onClick, color, tip }) {
-            const colors = {
-                blue: 'hover:bg-blue-500/20 hover:text-blue-400',
-                red: 'hover:bg-red-500/20 hover:text-red-400',
-                green: 'hover:bg-emerald-500/20 hover:text-emerald-400',
-                yellow: 'hover:bg-amber-500/20 hover:text-amber-400',
-            };
-            const activeColors = {
-                blue: 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-1 ring-blue-400',
-                red: 'bg-red-600 text-white shadow-lg shadow-red-500/30 ring-1 ring-red-400',
-                green: 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 ring-1 ring-emerald-400',
-                yellow: 'bg-amber-600 text-white shadow-lg shadow-amber-500/30 ring-1 ring-amber-400',
-            };
-
-            return (
-                <button 
-                    onClick={onClick}
-                    title={tip}
-                    className={`w-full aspect-square rounded-xl flex items-center justify-center transition-all duration-200 ${active ? `${activeColors[color]} scale-105` : `text-slate-400 ${colors[color]} bg-slate-800/50`}`}
-                >
-                    {icon}
-                </button>
-            )
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        // Init
+        const userLang = navigator.language || navigator.userLanguage; 
+        if (userLang.includes('zh')) { document.getElementById('langSwitcher').value = 'zh'; changeLanguage('zh'); }
+        else if (userLang.includes('ja')) { document.getElementById('langSwitcher').value = 'ja'; changeLanguage('ja'); }
+        else { changeLanguage('en'); }
+        updateContent();
+        updateStyle();
     </script>
 </body>
 </html>
