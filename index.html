@@ -36,7 +36,7 @@
         
         .main-container { max-width: 1200px; margin: 0 auto; display: flex; gap: 30px; align-items: flex-start; }
         
-        /* 左側控制面板 */
+        /* === 左側控制面板 === */
         .controls-panel { 
             flex: 1; background: var(--bg-panel); padding: 25px; border-radius: 16px; 
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); position: sticky; top: 20px; position: relative; 
@@ -63,9 +63,8 @@
 
         .control-group { margin-bottom: 18px; }
         .hidden { display: none; }
-        .color-group { display: flex; gap: 10px; }
-        input[type="color"] { flex: 1; height: 40px; border: none; padding: 0; cursor: pointer; border-radius: 6px; overflow: hidden; }
         
+        /* 風格選擇器 */
         .style-selector { display: flex; gap: 10px; margin-top: 5px; }
         .style-option { 
             flex: 1; height: 40px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; 
@@ -88,16 +87,50 @@
             margin-top: 10px; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); 
         }
 
+        /* === 右側預覽區 (更新) === */
         .preview-section { 
-            flex: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            min-height: 600px; background: #e5e7eb; border-radius: 16px; padding: 40px; 
-            border: 2px dashed #d1d5db; position: relative; 
+            flex: 2; display: flex; flex-direction: column; align-items: center; 
+            /* min-height 設為 auto，改用 padding 撐開 */
+            background: #e5e7eb; border-radius: 16px; padding: 30px; 
+            border: 2px dashed #d1d5db; position: relative;
         }
 
+        /* 新增：視覺工具列 (Visual Toolbar) */
+        .visual-toolbar {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+        
+        .vt-group { display: flex; flex-direction: column; gap: 5px; min-width: 120px; flex: 1; }
+        .vt-label { font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* 工具列內的元件樣式微調 */
+        .vt-colors { display: flex; gap: 8px; height: 36px; }
+        .vt-colors input[type="color"] { flex: 1; height: 100%; border: none; padding: 0; cursor: pointer; border-radius: 6px; }
+        
+        .vt-selector { display: flex; gap: 5px; height: 36px; }
+        .vt-opt { flex:1; font-size:0.8rem; display:flex; align-items:center; justify-content:center; border:1px solid #e5e7eb; border-radius:6px; cursor:pointer; background:#f9fafb; transition:0.2s; }
+        .vt-opt.selected { background: #4f46e5; color: white; border-color: #4f46e5; }
+        
+        .vt-slider { width: 100%; cursor: pointer; accent-color: #4f46e5; margin-top: 5px;}
+        .vt-val { float: right; color: #4f46e5; font-family: monospace; }
+
+        /* 預覽核心 Canvas */
         #captureArea {
             background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
             padding: 60px; display: flex; align-items: center; justify-content: center;
             box-sizing: border-box; width: auto; min-width: 500px; max-width: 800px; border-radius: 4px;
+            transition: padding 0.1s ease; /* 讓 padding 變化順滑 */
         }
 
         .window-box {
@@ -187,13 +220,11 @@
         .faq-item h3 { font-size: 1.2rem; color: #1f2937; margin-bottom: 10px; }
         .faq-item p { line-height: 1.6; }
         
-        /* 數值顯示 */
-        .range-value { float: right; color: var(--primary); font-family: monospace; font-size: 0.9em; }
-
         @media (max-width: 900px) {
             .main-container { flex-direction: column; }
             .controls-panel { position: static; }
             .preview-section { width: 100%; box-sizing: border-box; padding: 20px; }
+            .visual-toolbar { flex-direction: column; align-items: stretch; }
             #captureArea { min-width: 100%; padding: 30px; }
         }
     </style>
@@ -201,6 +232,7 @@
 <body>
 
     <div class="main-container">
+        <!-- 左側面板 (現在只放內容編輯) -->
         <div class="controls-panel">
             <select id="langSwitcher" onchange="changeLanguage(this.value)">
                 <option value="en">🌐 English</option>
@@ -261,46 +293,57 @@
                 <label data-i18n="label_title">Window Title</label>
                 <input type="text" id="titleInput" placeholder="Untitled" oninput="updateTitle()">
             </div>
-
-            <!-- Background Theme Controls -->
-            <div class="control-group">
-                <label data-i18n="label_theme">Background Theme</label>
-                <div class="color-group">
-                    <input type="color" id="color1" value="#667eea" oninput="updateStyle()">
-                    <input type="color" id="color2" value="#764ba2" oninput="updateStyle()">
-                </div>
-            </div>
-
-            <!-- v3.5 New Gradient Controls -->
-            <div class="control-group">
-                <label data-i18n="label_grad_type">Gradient Style</label>
-                <div class="style-selector">
-                    <div class="style-option grad-opt selected" onclick="setGradType('linear', this)">Linear ↗</div>
-                    <div class="style-option grad-opt" onclick="setGradType('radial', this)">Radial ⭕</div>
-                </div>
-            </div>
             
-            <div class="control-group" id="angleControl">
-                <label><span data-i18n="label_grad_angle">Angle</span>: <span id="val_angle" class="range-value">135°</span></label>
-                <input type="range" id="angleInput" min="0" max="360" value="135" oninput="updateStyle()">
-            </div>
-
-            <div class="control-group">
-                <label data-i18n="label_padding">Padding Size</label>
-                <input type="range" id="paddingInput" min="20" max="150" value="60" oninput="updateStyle()">
-            </div>
-
             <button class="btn-download" onclick="downloadImage()" data-i18n="btn_download">📸 Download Image</button>
 
             <!-- Support Box (Sidebar) -->
             <div class="support-box">
                 <div class="support-title" data-i18n="support_title">☕ Enjoying SnapGlow?</div>
                 <p class="support-desc" data-i18n="support_desc">Support us to keep this tool free!</p>
+                <!-- IMPORTANT: Replace this link with your actual Buy Me a Coffee link -->
                 <a href="https://buymeacoffee.com/snapglow" target="_blank" class="support-btn" data-i18n="support_btn">Buy me a Coffee</a>
             </div>
         </div>
 
+        <!-- 右側預覽區 (包含新的視覺工具列) -->
         <div class="preview-section">
+            
+            <!-- NEW Visual Toolbar (放在這裡！) -->
+            <div class="visual-toolbar">
+                
+                <!-- 1. Background Theme -->
+                <div class="vt-group">
+                    <div class="vt-label" data-i18n="label_theme">Theme</div>
+                    <div class="vt-colors">
+                        <input type="color" id="color1" value="#667eea" oninput="updateStyle()">
+                        <input type="color" id="color2" value="#764ba2" oninput="updateStyle()">
+                    </div>
+                </div>
+
+                <!-- 2. Gradient Type -->
+                <div class="vt-group">
+                    <div class="vt-label" data-i18n="label_grad_type">Type</div>
+                    <div class="vt-selector">
+                        <div class="vt-opt grad-opt selected" onclick="setGradType('linear', this)">↗</div>
+                        <div class="vt-opt grad-opt" onclick="setGradType('radial', this)">⭕</div>
+                    </div>
+                </div>
+
+                <!-- 3. Angle (Linear Only) -->
+                <div class="vt-group" id="angleControl">
+                    <div class="vt-label"><span data-i18n="label_grad_angle">Angle</span> <span id="val_angle" class="vt-val">135°</span></div>
+                    <input type="range" id="angleInput" class="vt-slider" min="0" max="360" value="135" oninput="updateStyle()">
+                </div>
+
+                <!-- 4. Padding -->
+                <div class="vt-group">
+                    <div class="vt-label"><span data-i18n="label_padding">Padding</span> <span id="val_pad" class="vt-val">60px</span></div>
+                    <input type="range" id="paddingInput" class="vt-slider" min="20" max="150" value="60" oninput="updateStyle()">
+                </div>
+
+            </div>
+
+            <!-- Capture Area -->
             <div id="captureArea" class="mode-code win-mac">
                 <div class="window-box">
                     <div class="window-header">
@@ -318,10 +361,11 @@
                 </div>
             </div>
             
-            <!-- Support Box (Bottom) -->
+            <!-- Support Box (Bottom/Mobile) -->
             <div class="support-box" style="width: 100%; margin-top: 30px; box-sizing: border-box;">
                 <div class="support-title" data-i18n="support_title">☕ Enjoying SnapGlow?</div>
                 <p class="support-desc" data-i18n="support_desc">Support us to keep this tool free!</p>
+                <!-- IMPORTANT: Replace this link with your actual Buy Me a Coffee link -->
                 <a href="https://buymeacoffee.com/snapglow" target="_blank" class="support-btn" data-i18n="support_btn">Buy me a Coffee</a>
             </div>
         </div>
@@ -370,10 +414,10 @@
                 "label_title": "Window Title",
                 "label_style": "Card Style",
                 "label_win_style": "Window Style",
-                "label_theme": "Background Theme",
-                "label_grad_type": "Gradient Style",
+                "label_theme": "Theme",
+                "label_grad_type": "Type",
                 "label_grad_angle": "Angle",
-                "label_padding": "Padding Size",
+                "label_padding": "Padding",
                 "btn_download": "📸 Download Image",
                 "ph_title": "Untitled",
                 "ph_author": "e.g. — Steve Jobs",
@@ -405,7 +449,7 @@
                 "label_win_style": "視窗邊框",
                 "label_theme": "背景配色",
                 "label_grad_type": "漸層樣式",
-                "label_grad_angle": "漸層角度",
+                "label_grad_angle": "角度",
                 "label_padding": "邊距大小",
                 "btn_download": "📸 下載圖片",
                 "ph_title": "未命名標題",
@@ -557,9 +601,11 @@
 
             // Show angle slider only for linear
             if (type === 'linear') {
-                angleControl.classList.remove('hidden');
+                angleControl.classList.remove('hidden'); // 改用 classList 移除 hidden
+                angleControl.style.display = 'flex'; // 強制顯示為 flex
             } else {
                 angleControl.classList.add('hidden');
+                angleControl.style.display = 'none';
             }
             updateStyle();
         }
@@ -605,6 +651,7 @@
             }
             
             captureArea.style.padding = `${pad}px`;
+            document.getElementById('val_pad').innerText = `${pad}px`;
         }
 
         function downloadImage() {
@@ -626,6 +673,7 @@
         else if (userLang.includes('ja')) { document.getElementById('langSwitcher').value = 'ja'; changeLanguage('ja'); }
         else { changeLanguage('en'); }
         updateContent();
+        updateStyle(); // Force initial style update
     </script>
 </body>
 </html>
